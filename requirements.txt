@@ -1,12 +1,14 @@
-# oanda-quant — dipendenze del motore
+# trading-quant — dipendenze del motore
 # Stack: vedi README.md. Installa in un venv:
 #   python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
 pandas>=2.0
 numpy>=1.24
-requests>=2.31
 python-dotenv>=1.0
-oandapyV20>=0.7
 matplotlib>=3.7
+
+# broker: Interactive Brokers via IB Gateway/TWS.
+# ib_async è il fork mantenuto di ib_insync (richiede un Gateway acceso).
+ib_async>=1.0
 
 # sviluppo / test
 pytest>=7.0

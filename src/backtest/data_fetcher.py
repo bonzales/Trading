@@ -1,4 +1,4 @@
-"""CLI di download e verifica dello storico OANDA.
+"""CLI di download e verifica dello storico IBKR.
 
 Comandi (vedi docs/tutorials/01-primo-backtest.md):
 
@@ -8,8 +8,9 @@ Comandi (vedi docs/tutorials/01-primo-backtest.md):
     # Passo 2 — scarica e mette in cache N anni di storico
     python -m src.backtest.data_fetcher --instrument EUR_USD --tf H1 --years 3
 
-La cache finisce in `raw/cache/` (ignorata da git). I dati grezzi sono fonte di
-verità: una volta scritti non si modificano a mano.
+Richiede un IB Gateway/TWS acceso e loggato (vedi .env.example). La cache finisce
+in `raw/cache/` (ignorata da git). I dati grezzi sono fonte di verità: una volta
+scritti non si modificano a mano.
 """
 from __future__ import annotations
 
@@ -19,7 +20,7 @@ from datetime import datetime, timezone
 
 import pandas as pd
 
-from src.adapters.oanda.data import OandaDataClient
+from src.adapters.ibkr.data import IBKRDataClient
 from src.config import CACHE_DIR, ConfigError, load_settings
 
 
@@ -27,7 +28,7 @@ def cache_path(instrument: str, granularity: str):
     return CACHE_DIR / f"{instrument}_{granularity}.csv"
 
 
-def cmd_check_coverage(client: OandaDataClient, instrument: str, granularity: str) -> int:
+def cmd_check_coverage(client: IBKRDataClient, instrument: str, granularity: str) -> int:
     cov = client.check_coverage(instrument, granularity)
     if cov is None:
         print(f"[!] Nessun dato disponibile per {instrument} {granularity}.")
@@ -42,14 +43,14 @@ def cmd_check_coverage(client: OandaDataClient, instrument: str, granularity: st
     return 0
 
 
-def cmd_fetch(client: OandaDataClient, instrument: str, granularity: str, years: float, price: str) -> int:
+def cmd_fetch(client: IBKRDataClient, instrument: str, granularity: str, years: float, price: str) -> int:
     now = datetime.now(timezone.utc)
     from_time = now.replace(year=now.year - int(years)) if years == int(years) else now - pd.Timedelta(days=365.25 * years).to_pytimedelta()
 
     cov = client.check_coverage(instrument, granularity)
     if cov is not None and cov.earliest > from_time:
         print(
-            f"[!] Richiesti {years}y ma OANDA parte dal {cov.earliest.date()} "
+            f"[!] Richiesti {years}y ma IBKR parte dal {cov.earliest.date()} "
             f"({cov.years:.2f}y disponibili). Scarico ciò che esiste."
         )
         from_time = cov.earliest
@@ -73,9 +74,9 @@ def cmd_fetch(client: OandaDataClient, instrument: str, granularity: str, years:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="data_fetcher", description="Download/verifica storico OANDA")
-    p.add_argument("--instrument", required=True, help="es. EUR_USD, XAU_USD, US500_USD")
-    p.add_argument("--tf", required=True, help="granularità OANDA: M1 M5 M15 H1 H4 D W …")
+    p = argparse.ArgumentParser(prog="data_fetcher", description="Download/verifica storico IBKR")
+    p.add_argument("--instrument", required=True, help="es. EUR_USD, XAU_USD (formato BASE_QUOTE)")
+    p.add_argument("--tf", required=True, help="timeframe: M1 M5 M15 H1 H4 D W …")
     p.add_argument("--check-coverage", action="store_true", help="verifica la profondità storica, non scarica")
     p.add_argument("--years", type=float, default=None, help="anni di storico da scaricare")
     p.add_argument("--price", default="M", choices=["M", "B", "A"], help="mid/bid/ask (default M)")
@@ -90,11 +91,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[config] {err}", file=sys.stderr)
         return 2
 
-    client = OandaDataClient(settings)
-    if args.check_coverage:
-        return cmd_check_coverage(client, args.instrument, args.tf)
-    if args.years is not None:
-        return cmd_fetch(client, args.instrument, args.tf, args.years, args.price)
+    client = IBKRDataClient(settings)
+    try:
+        if args.check_coverage:
+            return cmd_check_coverage(client, args.instrument, args.tf)
+        if args.years is not None:
+            return cmd_fetch(client, args.instrument, args.tf, args.years, args.price)
+    finally:
+        client.close()
 
     print("Niente da fare: usa --check-coverage oppure --years N.", file=sys.stderr)
     return 2

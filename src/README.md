@@ -1,21 +1,22 @@
 # src/ — il motore
 
-Codice eseguibile. Da costruire in Claude Code portando i moduli riusabili dal
-progetto Kraken (`core/`, `backtest/`, `engine.py`, `logger.py`) e riscrivendo
-l'adapter OANDA (`adapters/oanda/`). Mappa completa: `docs/reference/architettura-moduli.md`.
+Codice eseguibile. Broker: **Interactive Brokers** (via IB Gateway/TWS) — OANDA
+abbandonato perché non concede l'API agli utenti retail europei. Cambiare broker
+tocca SOLO `adapters/` (qui la promessa dell'architettura si è già avverata una
+volta). Mappa completa: `docs/reference/architettura-moduli.md`.
 
 Ordine consigliato:
-1. ✅ `adapters/oanda/data.py` + verifica profondità storica (lezione n.1 Kraken). **Fatto.**
+1. ✅ `adapters/ibkr/data.py` + verifica profondità storica (lezione n.1 Kraken). **Fatto.**
 2. ✅ Backtest engine multi-uso + `optimize()` + `walk_forward()` + costi spread. **Fatto.**
-3. 1-2 strategie validate con walk-forward su dati OANDA reali (serve account demo).
+3. 1-2 strategie validate con walk-forward su dati IBKR reali (serve conto paper + Gateway acceso).
 4. Paper su demo → eventuale live.
 
 ## Stato attuale
 
 | Modulo                          | Stato      | Note                                              |
 |---------------------------------|------------|---------------------------------------------------|
-| `config.py`                     | pronto     | carica `.env`, risolve host practice/live         |
-| `adapters/oanda/data.py`        | pronto     | candele OHLCV, paginazione storica, `check_coverage` |
+| `config.py`                     | pronto     | carica `.env`, host/porta Gateway practice/live   |
+| `adapters/ibkr/data.py`         | da verificare live | candele OHLCV, paginazione storica, `check_coverage`; testato offline, manca prova col Gateway |
 | `backtest/data_fetcher.py`      | pronto     | CLI `--check-coverage` / `--years` (vedi tutorial 01) |
 | `core/indicators.py`            | pronto     | EMA, RSI, MACD, ATR, Donchian (nativi)            |
 | `core/strategy.py`              | pronto     | `PullbackStrategy` + factory `make_strategy`      |
@@ -23,14 +24,14 @@ Ordine consigliato:
 | `core/reporting.py`             | pronto     | PF, Sharpe, max DD, win rate, n. trade            |
 | `backtest/backtest_engine.py`   | pronto     | event-driven, `optimize()`, `walk_forward()`      |
 | `backtest/report.py`            | pronto     | CLI backtest/walk-forward, salva output in `raw/` |
-| `adapters/oanda/execution.py`   | da fare    | ordini, spread, swap, orari mercato (per il paper) |
+| `adapters/ibkr/execution.py`    | da fare    | ordini, spread, swap, orari mercato (per il paper) |
 
 ## Come partire (dev)
 
 ```bash
 python3 -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env          # poi compila con le credenziali demo OANDA
+cp .env.example .env          # poi compila col conto paper IBKR (serve IB Gateway acceso)
 pytest -q                     # test offline (no rete, no credenziali)
 
 # Passo 1: verifica la profondità storica REALE
