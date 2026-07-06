@@ -1,0 +1,16 @@
+{
+  "type": "backtest",
+  "strategy": "pullback",
+  "instrument": "EUR_USD",
+  "tf": "H1",
+  "metrics": {
+    "n_trades": 474,
+    "win_rate": 0.40717299578059074,
+    "profit_factor": 0.9514579708215359,
+    "sharpe": -0.21500045478268903,
+    "max_drawdown": -0.3214078492134459,
+    "total_return": -0.14063540451757672,
+    "final_equity": 8593.645954824233
+  },
+  "n_trades": 474
+}

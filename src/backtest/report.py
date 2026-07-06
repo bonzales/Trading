@@ -19,7 +19,7 @@ from datetime import date
 
 import pandas as pd
 
-from src.adapters.oanda.data import granularity_to_seconds
+from src.adapters.timeframes import granularity_to_seconds
 from src.backtest.backtest_engine import (
     CostModel,
     run_backtest,

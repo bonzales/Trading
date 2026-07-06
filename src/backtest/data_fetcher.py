@@ -73,10 +73,28 @@ def cmd_fetch(client: IBKRDataClient, instrument: str, granularity: str, years: 
     return 0
 
 
+def build_client(source: str):
+    """Costruisce il client dati per la sorgente scelta.
+
+    - dukascopy: storico gratuito per la RICERCA (nessuna credenziale, default).
+    - ibkr:      storico dal broker di esecuzione (serve Gateway acceso + .env).
+    Entrambi espongono la stessa interfaccia (check_coverage, fetch_history).
+    """
+    if source == "dukascopy":
+        from src.adapters.dukascopy.data import DukascopyDataClient
+        return DukascopyDataClient()
+    if source == "ibkr":
+        from src.adapters.ibkr.data import IBKRDataClient
+        return IBKRDataClient(load_settings(require_credentials=True))
+    raise ValueError(f"Sorgente '{source}' sconosciuta. Usa: dukascopy | ibkr.")
+
+
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="data_fetcher", description="Download/verifica storico IBKR")
+    p = argparse.ArgumentParser(prog="data_fetcher", description="Download/verifica storico (Dukascopy/IBKR)")
     p.add_argument("--instrument", required=True, help="es. EUR_USD, XAU_USD (formato BASE_QUOTE)")
     p.add_argument("--tf", required=True, help="timeframe: M1 M5 M15 H1 H4 D W …")
+    p.add_argument("--source", default="dukascopy", choices=["dukascopy", "ibkr"],
+                   help="sorgente dati (default dukascopy: gratis, per la ricerca)")
     p.add_argument("--check-coverage", action="store_true", help="verifica la profondità storica, non scarica")
     p.add_argument("--years", type=float, default=None, help="anni di storico da scaricare")
     p.add_argument("--price", default="M", choices=["M", "B", "A"], help="mid/bid/ask (default M)")
@@ -86,19 +104,19 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        settings = load_settings(require_credentials=True)
+        client = build_client(args.source)
     except ConfigError as err:
         print(f"[config] {err}", file=sys.stderr)
         return 2
 
-    client = IBKRDataClient(settings)
+    close = getattr(client, "close", lambda: None)
     try:
         if args.check_coverage:
             return cmd_check_coverage(client, args.instrument, args.tf)
         if args.years is not None:
             return cmd_fetch(client, args.instrument, args.tf, args.years, args.price)
     finally:
-        client.close()
+        close()
 
     print("Niente da fare: usa --check-coverage oppure --years N.", file=sys.stderr)
     return 2
