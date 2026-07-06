@@ -41,14 +41,31 @@ def resolve_interval(granularity: str):
     return getattr(d, name)
 
 
-def resolve_instrument(instrument: str):
-    """Risolve 'EUR_USD' nella costante strumento Dukascopy corrispondente.
+# Alias per strumenti il cui nome interno Dukascopy non segue il formato
+# BASE_QUOTE (tipicamente indici). Chiave = nome che usiamo noi nel progetto.
+_INSTRUMENT_ALIASES = {
+    "DAX": "INSTRUMENT_IDX_EUROPE_E_DAAX",
+    "DE40": "INSTRUMENT_IDX_EUROPE_E_DAAX",
+    "GER40": "INSTRUMENT_IDX_EUROPE_E_DAAX",
+    "US500": "INSTRUMENT_IDX_AMERICA_E_SANDP_500",
+    "US30": "INSTRUMENT_IDX_AMERICA_E_D_J_IND",
+    "NAS100": "INSTRUMENT_IDX_AMERICA_E_NQ_100",
+    "UK100": "INSTRUMENT_IDX_EUROPE_E_FUTSEE_100",
+}
 
-    Le costanti Dukascopy sono raggruppate (INSTRUMENT_FX_MAJORS_EUR_USD,
-    INSTRUMENT_FX_METALS_XAU_USD, …). Cerchiamo per suffisso così non dobbiamo
-    conoscere il gruppo a priori.
+
+def resolve_instrument(instrument: str):
+    """Risolve 'EUR_USD' o 'DAX' nella costante strumento Dukascopy.
+
+    Prima gli alias espliciti (indici), poi la ricerca per suffisso per le coppie
+    BASE_QUOTE (INSTRUMENT_FX_MAJORS_EUR_USD, INSTRUMENT_FX_METALS_XAU_USD, …), così
+    non dobbiamo conoscere il gruppo a priori.
     """
     from dukascopy_python import instruments as I
+
+    alias = _INSTRUMENT_ALIASES.get(instrument.upper())
+    if alias is not None:
+        return getattr(I, alias)
 
     suffix = f"_{instrument.upper()}"
     matches = [n for n in dir(I) if n.startswith("INSTRUMENT_") and n.endswith(suffix)]

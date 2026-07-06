@@ -1,0 +1,22 @@
+{
+  "type": "exploratory_study",
+  "instrument": "DAX (Dukascopy IDX_EUROPE_E_DAAX)",
+  "timeframe": "M1",
+  "price": "bid",
+  "period": "2024-07-01 .. 2026-01-01",
+  "days_analyzed": 388,
+  "candles": 505585,
+  "open_anchor": "09:00 Europe/Berlin",
+  "volume_ratio_signal_over_preopen_baseline": {
+    "median": 6.6, "p25": 5.5, "p75": 7.9, "p90": 9.2,
+    "share_days_gt_5x": 0.81, "share_days_gt_10x": 0.05
+  },
+  "signal_candle_range_points": {"median": 28, "p25": 21, "p75": 37},
+  "excursion_0906_0930_from_signal_close_points": {
+    "best_side_median": 56,
+    "share_days_ge_40pt_either_side": 0.71,
+    "share_days_ge_40pt_up": 0.34,
+    "share_days_ge_40pt_down": 0.41
+  },
+  "notes": "Escursione = massimo teorico (upper bound), non win rate. Baseline = media volume 08:30-09:00 locale. Fonte dati: Dukascopy DAX M1 bid. Script: scratchpad/dax_open_study.py."
+}
