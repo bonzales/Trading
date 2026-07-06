@@ -7,7 +7,7 @@
 | Pagina           | Status         | Sintesi                                       |
 |------------------|----------------|-----------------------------------------------|
 | [[pullback]]     | testing        | Kraken: pareggio. EUR_USD H1: no edge (PF 0.951). |
-| [[dax_open_volume]] | untested    | Scalping apertura DAX. Effetto volume confermato dai dati; backtest da fare. |
+| [[dax_open_volume]] | rejected    | Scalping apertura DAX. Effetto reale ma no edge dopo costi (break-even a 2,5pt). |
 | [[breakout]]     | rejected       | Forte perdita su Kraken (12 mesi reali).      |
 | [[meanrev]]      | rejected       | Perdita su Kraken.                             |
 | [[ichimoku]]     | rejected       | Forte perdita su Kraken.                       |
@@ -23,6 +23,7 @@
 |--------------|-------------|--------------------------------------------------|
 | [[exp_2026-07-06_pullback_EUR_USD_H1]] | 2026-07-06 | `rejected` — PF 0.951 in-sample, nessun edge. |
 | [[exp_2026-07-06_dax_open_volume_study]] | 2026-07-06 | studio: effetto apertura DAX confermato (vol >5x nell'81% dei giorni). |
+| [[exp_2026-07-06_dax_open_backtest]] | 2026-07-06 | `rejected`: PF 1,045 a 1,5pt spread, break-even a 2,5pt. |
 
 ---
 **Stato del progetto:** primo backtest reale eseguito su dati Dukascopy (EUR_USD H1,

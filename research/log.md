@@ -8,3 +8,4 @@
 ## [2026-07-06] setup | migrazione broker OANDA→IBKR (solo adapter). Dati di ricerca da Dukascopy (gratis, 23y su EUR_USD H1).
 ## [2026-07-06] ingest | pullback EUR_USD H1 3y → rejected (PF 0.951, no edge in-sample, no walk-forward)
 ## [2026-07-06] query  | scalping apertura DAX (utente): studio 388 giorni → effetto volume confermato (>5x nell'81%), stop~28pt vs target 40pt. Strategia dax_open_volume creata (untested).
+## [2026-07-06] ingest | dax_open_volume M1 3y → rejected. PF 1,045 a spread 1,5pt ma muore a 2,5pt (break-even). Incostante per anno; candele "oro" non aiutano. Edge probabilmente discrezionale, non meccanizzabile.

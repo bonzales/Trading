@@ -92,7 +92,9 @@ def _df_to_records(df) -> list[dict]:
                 "high": float(row["high"]),
                 "low": float(row["low"]),
                 "close": float(row["close"]),
-                "volume": int(row["volume"]) if row["volume"] == row["volume"] else 0,
+                # volume TENUTO in virgola mobile: sugli indici Dukascopy è
+                # frazionario (<1). Troncarlo a int azzererebbe il segnale.
+                "volume": float(row["volume"]) if row["volume"] == row["volume"] else 0.0,
             }
         )
     return out

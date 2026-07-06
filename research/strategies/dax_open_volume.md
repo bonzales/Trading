@@ -1,9 +1,9 @@
 ---
 type: strategy
-status: untested
+status: rejected
 tags: [indici, dax, scalping, m1, volume, opening-range]
 updated: 2026-07-06
-links: ["[[DAX]]", "[[exp_2026-07-06_dax_open_volume_study]]"]
+links: ["[[DAX]]", "[[exp_2026-07-06_dax_open_volume_study]]", "[[exp_2026-07-06_dax_open_backtest]]"]
 ---
 # dax_open_volume (scalping apertura DAX)
 
@@ -43,11 +43,19 @@ Il backtest deve modellare bene parziali+trailing, o la sottovaluta.
 | Data       | Cosa                          | Esito                        | Fonte |
 |------------|-------------------------------|------------------------------|-------|
 | 2026-07-06 | studio esplorativo pre-backtest | effetto confermato; R:R stretto | [[exp_2026-07-06_dax_open_volume_study]] |
+| 2026-07-06 | backtest meccanico M1 3y      | `rejected`: PF 1,045 a 1,5pt, muore a 2,5pt | [[exp_2026-07-06_dax_open_backtest]] |
 
 ## Verdetto corrente
-`untested`. Ingredienti dell'edge presenti nei dati; manca il backtest meccanico
-completo con costi realistici. Prossimo passo: implementare la strategia + un
-backtest intraday dedicato (sessione, finestre orarie, un setup/giorno).
+`rejected` **come strategia meccanica automatica.** L'effetto apertura esiste, ma il
+rimbalzo sul livello di volume non produce un edge che sopravviva ai costi reali:
+dopo spread 2,5 pt (realistico in apertura) il PF è ~break-even (0,96–1,02), incostante
+per anno. Le candele "d'oro" non migliorano; l'unica variante positiva è rumore (1/5,
+non OOS).
+
+**Non è un giudizio sull'operatività manuale dell'utente:** l'edge reale vive
+probabilmente nella parte discrezionale (timing/qualità d'ingresso, selezione giornate)
+non catturata da questa v1. Riaprire solo con un'ipotesi *nuova e testabile* (es. un
+filtro di contesto/momentum validato in walk-forward), non ritoccando i parametri.
 
 ## Note
 Le soglie di volume di IG (500/1000) NON si trasferiscono: su Dukascopy lo stesso

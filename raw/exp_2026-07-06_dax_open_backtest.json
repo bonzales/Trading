@@ -1,0 +1,85 @@
+{
+  "type": "backtest",
+  "strategy": "dax_open_volume",
+  "instrument": "DAX",
+  "tf": "M1",
+  "source": "Dukascopy mid",
+  "period": "2023-07-06 .. 2026-07-06 (~3y)",
+  "config_default": "vol_mult5, tol4, confirm3, stopbuf2, BE25, partial50%@40, trail15, risk2%",
+  "baseline_spread1.5": {
+    "n_trades": 507,
+    "win_rate": 0.3905325443786982,
+    "profit_factor": 1.0446224330507727,
+    "expectancy_R": 0.018770527542499856,
+    "total_points": 481.4117500000166,
+    "max_drawdown": -0.2259569636977468,
+    "total_return": 0.09295461865876642,
+    "long": 270,
+    "short": 237
+  },
+  "by_year_spread1.5": {
+    "2023": {
+      "n_trades": 97,
+      "win_rate": 0.27835051546391754,
+      "profit_factor": 0.8229980388837068,
+      "expectancy_R": -0.08363023161382903,
+      "total_points": -401.2009999999964,
+      "max_drawdown": -0.2259569636977468,
+      "total_return": -0.16722858210709035,
+      "long": 55,
+      "short": 42
+    },
+    "2024": {
+      "n_trades": 187,
+      "win_rate": 0.39572192513368987,
+      "profit_factor": 1.1466867817654385,
+      "expectancy_R": 0.06756049023771438,
+      "total_points": 449.6312499999931,
+      "max_drawdown": -0.19622656337933425,
+      "total_return": 0.22849660828161755,
+      "long": 104,
+      "short": 83
+    },
+    "2025": {
+      "n_trades": 171,
+      "win_rate": 0.43859649122807015,
+      "profit_factor": 1.0749351172972978,
+      "expectancy_R": 0.027513056380350096,
+      "total_points": 376.4052500000107,
+      "max_drawdown": -0.17050219903900393,
+      "total_return": 0.06990044382031613,
+      "long": 83,
+      "short": 88
+    },
+    "2026": {
+      "n_trades": 52,
+      "win_rate": 0.4230769230769231,
+      "profit_factor": 1.0156651974628303,
+      "expectancy_R": 0.005581646444161154,
+      "total_points": 56.57625000000917,
+      "max_drawdown": -0.12695066774803604,
+      "total_return": -0.001474893260954735,
+      "long": 28,
+      "short": 24
+    }
+  },
+  "spread_sensitivity_PF": {
+    "0.0": 1.1533147760849711,
+    "1.5": 1.0446224330507727,
+    "2.5": 0.9758793308746699,
+    "3.5": 0.9328009941926069
+  },
+  "vol_mult_at_spread2.5_PF": {
+    "5": 0.9758793308746699,
+    "7": 0.9129847705038782,
+    "9": 0.8727997696355314,
+    "12": 0.8785837728405627
+  },
+  "exit_variants_at_spread2.5_PF": {
+    "default": 0.9758793308746699,
+    "no_partial_trail20": 0.9586030677794677,
+    "no_partial_trail30": 0.9721851360238517,
+    "partial_at60_trail25": 1.0180139706088258
+  },
+  "verdict": "Nessun edge robusto dopo costi realistici. A spread 2.5pt (~costo vero in apertura con slippage) il PF hovera 0.96-1.02 a seconda dei tweak: break-even, indistinguibile da zero. Le config positive sono cherry-picked (1 su 5) e non validate OOS. Incostante per anno (2023 in perdita). REJECTED come strategia meccanica automatica."
+}

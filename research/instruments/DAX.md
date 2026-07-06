@@ -23,7 +23,8 @@ progetto: `DAX`). Punto DAX = 1 punto indice.
 ## Storia dei test
 | Data       | Strategia          | tf | Esito                    | Fonte |
 |------------|--------------------|----|--------------------------|-------|
-| 2026-07-06 | [[dax_open_volume]]| M1 | studio: effetto confermato, backtest da fare | [[exp_2026-07-06_dax_open_volume_study]] |
+| 2026-07-06 | [[dax_open_volume]]| M1 | studio: effetto confermato | [[exp_2026-07-06_dax_open_volume_study]] |
+| 2026-07-06 | [[dax_open_volume]]| M1 | backtest: `rejected` (break-even dopo costi) | [[exp_2026-07-06_dax_open_backtest]] |
 
 ## Note
 Volume Dukascopy = attività sulla loro liquidità (proxy relativo, non assoluto).
