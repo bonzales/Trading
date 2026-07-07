@@ -1,0 +1,20 @@
+{
+  "type": "backtest",
+  "strategy": "dax_open_volume",
+  "variant": "v2 rettangolo (zona=close-estremo, stop stretto dietro il rettangolo, ingresso limite elastico a tol dal bordo, uscite in R)",
+  "instrument": "DAX", "tf": "M1", "source": "Dukascopy mid",
+  "period": "2023-07-06 .. 2026-07-06 (~3y)",
+  "n_trades": 448,
+  "base_exits_be1_partial1_trail1": {
+    "spread_1.5": {"PF": 0.810, "win": 0.46, "exp_R": -0.108, "return": -0.659, "maxDD": -0.699},
+    "spread_2.5": {"PF": 0.672, "win": 0.44, "exp_R": -0.202, "return": -0.853},
+    "spread_3.5": {"PF": 0.592, "win": 0.42, "exp_R": -0.268, "return": -0.919}
+  },
+  "runner_exit_variants_PF": {
+    "no_partial_trail2R":   {"sp1.5": 0.762, "sp2.5": 0.651},
+    "no_partial_trail3R":   {"sp1.5": 0.894, "sp2.5": 0.767},
+    "partial2R_trail2R":    {"sp1.5": 0.756, "sp2.5": 0.650},
+    "BE1R_noPartial_trail2.5R": {"sp1.5": 0.813, "sp2.5": 0.684}
+  },
+  "verdict": "v2 (fedele all'operativita' reale: rettangolo close-estremo, stop stretto, ingresso elastico) e' PEGGIORE della v1. Lo stop stretto viene falciato dal rumore (whipsaw sul livello); nessuna variante d'uscita (incluso 'far correre' i runner con trailing largo) supera PF 0.90. Confermato su entrambe le mecc.: la regola apertura-volume->rimbalzo, da sola, non ha edge dopo costi. L'edge dell'utente era discrezionale."
+}

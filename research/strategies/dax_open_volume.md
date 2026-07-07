@@ -43,7 +43,8 @@ Il backtest deve modellare bene parziali+trailing, o la sottovaluta.
 | Data       | Cosa                          | Esito                        | Fonte |
 |------------|-------------------------------|------------------------------|-------|
 | 2026-07-06 | studio esplorativo pre-backtest | effetto confermato; R:R stretto | [[exp_2026-07-06_dax_open_volume_study]] |
-| 2026-07-06 | backtest meccanico M1 3y      | `rejected`: PF 1,045 a 1,5pt, muore a 2,5pt | [[exp_2026-07-06_dax_open_backtest]] |
+| 2026-07-06 | backtest v1 (chase, stop largo) | `rejected`: PF 1,045 a 1,5pt, muore a 2,5pt | [[exp_2026-07-06_dax_open_backtest]] |
+| 2026-07-06 | backtest v2 (rettangolo, stop stretto, elastico) | `rejected`: PF 0,81 → peggiore | [[exp_2026-07-06_dax_open_backtest]] |
 
 ## Verdetto corrente
 `rejected` **come strategia meccanica automatica.** L'effetto apertura esiste, ma il

@@ -4,6 +4,7 @@ status: rejected
 tags: [indici, dax, scalping, m1, volume, backtest]
 updated: 2026-07-06
 links: ["[[dax_open_volume]]", "[[DAX]]"]
+raw: ["raw/exp_2026-07-06_dax_open_backtest.json", "raw/exp_2026-07-06_dax_open_v2_rettangolo.json"]
 ---
 # Exp 2026-07-06 — backtest dax_open_volume (M1, 3y)
 
@@ -38,9 +39,20 @@ in apertura (spread allargato + slippage).
 **Varianti d'uscita a 2,5 pt:** 4 su 5 negative; solo "parziale@60 + trail 25" a
 PF 1,018 — ma è 1 su 5, per un pelo, non validata OOS → **rumore**.
 
+## v2 "rettangolo" (dopo lo screenshot dell'utente)
+Corretta la meccanizzazione per aderire all'operatività reale: zona = rettangolo
+tra chiusura ed estremo (non tutta la candela), stop **stretto** appena dietro il
+rettangolo, ingresso **elastico** (ordine limite a `tol` dal bordo, scatta anche
+senza ritocco esatto), uscite in **R**. Fonte: `raw/exp_2026-07-06_dax_open_v2_rettangolo.json`.
+
+Esito: **peggiore della v1.** PF 0,810 (spread 1,5) → 0,672 (2,5). Lo stop stretto
+viene falciato dal rumore quando il prezzo buca il livello (whipsaw). Nessuna
+variante d'uscita "fai correre i runner" (trailing 2R/3R, parziale a 2R) supera
+**PF 0,90**: win rate crolla al 16–23% e i pochi runner non ripagano gli stop.
+
 ## Walk-forward
-Non eseguito: il risultato in-sample è già sul filo e crolla allo stress dei costi.
-Ottimizzare per rifar salire il PF sarebbe overfitting (CLAUDE.md §5).
+Non eseguito: nessuna delle due meccanizzazioni raggiunge nemmeno PF>1 robusto
+in-sample. Ottimizzare oltre sarebbe overfitting (CLAUDE.md §5).
 
 ## Conclusione + gate
 **Verdetto: `rejected` come strategia meccanica automatica.** Dopo costi realistici
