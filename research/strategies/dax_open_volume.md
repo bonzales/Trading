@@ -1,9 +1,9 @@
 ---
 type: strategy
-status: rejected
-tags: [indici, dax, scalping, m1, volume, opening-range]
+status: testing
+tags: [indici, dax, scalping, m1, volume, opening-range, multi-strumento]
 updated: 2026-07-06
-links: ["[[DAX]]", "[[exp_2026-07-06_dax_open_volume_study]]", "[[exp_2026-07-06_dax_open_backtest]]"]
+links: ["[[DAX]]", "[[exp_2026-07-06_dax_open_volume_study]]", "[[exp_2026-07-06_dax_open_backtest]]", "[[exp_2026-07-06_dax_levels_v3]]"]
 ---
 # dax_open_volume (scalping apertura DAX)
 
@@ -45,18 +45,25 @@ Il backtest deve modellare bene parziali+trailing, o la sottovaluta.
 | 2026-07-06 | studio esplorativo pre-backtest | effetto confermato; R:R stretto | [[exp_2026-07-06_dax_open_volume_study]] |
 | 2026-07-06 | backtest v1 (chase, stop largo) | `rejected`: PF 1,045 a 1,5pt, muore a 2,5pt | [[exp_2026-07-06_dax_open_backtest]] |
 | 2026-07-06 | backtest v2 (rettangolo, stop stretto, elastico) | `rejected`: PF 0,81 → peggiore | [[exp_2026-07-06_dax_open_backtest]] |
+| 2026-07-06 | backtest v3 (livelli volume multi-day + rottura) | sospeso: sotto-genera (~1/sett vs ~1/gg reale); da rifare fedele + multi-indice | [[exp_2026-07-06_dax_levels_v3]] |
 
 ## Verdetto corrente
-`rejected` **come strategia meccanica automatica.** L'effetto apertura esiste, ma il
-rimbalzo sul livello di volume non produce un edge che sopravviva ai costi reali:
-dopo spread 2,5 pt (realistico in apertura) il PF è ~break-even (0,96–1,02), incostante
-per anno. Le candele "d'oro" non migliorano; l'unica variante positiva è rumore (1/5,
-non OOS).
+`testing`. **Verdetto NON ancora emesso** — le prime tre meccanizzazioni sono state
+respinte, ma la v3 aveva un difetto grave di FEDELTÀ: generava ~50 trade/anno
+(≈1/settimana) mentre l'utente ne faceva **≥1 al giorno / ~4 a settimana per
+strumento**. Ho quindi testato una versione che cattura ~1/5 dei setup reali → il
+"rejected" era prematuro (rigettata l'implementazione, non la strategia).
 
-**Non è un giudizio sull'operatività manuale dell'utente:** l'edge reale vive
-probabilmente nella parte discrezionale (timing/qualità d'ingresso, selezione giornate)
-non catturata da questa v1. Riaprire solo con un'ipotesi *nuova e testabile* (es. un
-filtro di contesto/momentum validato in walk-forward), non ritoccando i parametri.
+**Prossimo test (in corso), più fedele e più severo:**
+- generare la frequenza reale (più setup/giorno, non uno solo);
+- estendere ai 3 indici USA ([[US500]], [[NAS100]], [[US30]], apertura 15:30
+  Europe/Berlin) oltre al DAX → **4 mercati indipendenti** come out-of-sample naturale.
+Se un edge stabile emerge su tutti e quattro con frequenza reale → candidato vero.
+Se no → rigetto molto robusto.
+
+## Storico delle meccanizzazioni respinte (per non riprovarle)
+v1 rimbalzo stop-largo (PF 1,04, muore a 2,5pt) · v2 rettangolo stop-stretto (0,81) ·
+v3 livelli multi-day **ma sotto-genera** (aggregato 1,11 = miraggio piccolo campione).
 
 ## Note
 Le soglie di volume di IG (500/1000) NON si trasferiscono: su Dukascopy lo stesso

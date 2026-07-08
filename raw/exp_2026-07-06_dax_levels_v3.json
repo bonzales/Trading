@@ -1,0 +1,16 @@
+{
+  "type": "backtest",
+  "strategy": "dax_open_volume",
+  "variant": "v3 livelli-volume multi-day + rottura (stop al livello opposto, uscite proxy)",
+  "instrument": "DAX", "tf": "M1", "source": "Dukascopy mid", "period": "2023-07..2026-07 (~3y)",
+  "with_time_stop": {"spread1.5": {"PF": 0.752, "ret": -0.153}, "spread2.5": {"PF": 0.686}},
+  "no_time_stop": {
+    "aggregate": {"spread1.5": {"PF": 1.153, "win": 0.52, "ret": 0.191},
+                  "spread2.5": {"PF": 1.111, "win": 0.51, "ret": 0.128}},
+    "by_year_spread2.5": {"2023": {"n": 31, "PF": 1.049}, "2024": {"n": 68, "PF": 0.697},
+                          "2025": {"n": 15, "PF": 2.613}, "2026": {"n": 20, "PF": 1.890}},
+    "two_halves_spread2.5": {"first_23_24": {"n": 109, "PF": 0.810, "ret": -0.203},
+                             "second_25_26": {"n": 39, "PF": 2.343, "ret": 0.447}}
+  },
+  "verdict": "REJECTED. Senza time-stop l'aggregato sembra positivo (PF 1.11 a 2.5pt) ma e' un miraggio da piccolo campione: la 1a meta (109 trade, 2023-24) PERDE (PF 0.81, -20%), il guadagno e' tutto in ~39 trade recenti (2025-26). Non stabile out-of-sample. Il time-stop (proxy della gestione discrezionale) peggiora ancora. Conferma su 4 mecc. (v1/v2/v3/v3-no-timestop): nessun edge robusto dopo costi. L'edge era discrezionale."
+}

@@ -110,13 +110,14 @@ def build_level_map(d: pd.DataFrame, cfg: LevelsConfig) -> dict:
     return out
 
 
-def active_levels(day, level_map: dict, days_sorted: list, cfg: LevelsConfig) -> list[Level]:
+def active_levels(day, level_map: dict, days_sorted: list, day_to_i: dict,
+                  cfg: LevelsConfig) -> list[Level]:
     """Livelli validi (dei giorni PRECEDENTI) per la data `day`."""
-    i = days_sorted.index(day)
+    i = day_to_i[day]
     out: list[Level] = []
-    for prev in days_sorted[max(0, i - cfg.keep_days_gold):i]:
-        age = i - days_sorted.index(prev)
-        for lv in level_map.get(prev, []):
+    for j in range(max(0, i - cfg.keep_days_gold), i):
+        age = i - j
+        for lv in level_map.get(days_sorted[j], []):
             keep = cfg.keep_days_gold if lv.tier == "gold" else cfg.keep_days_normal
             if age <= keep:
                 out.append(lv)
@@ -174,9 +175,9 @@ def _simulate(after: pd.DataFrame, side: str, entry: float, stop: float,
 def run_day(g: pd.DataFrame, levels: list[Level], today_open_price: float,
             cfg: LevelsConfig) -> LTrade | None:
     """Un giorno: prende la PRIMA rottura netta di un livello in gioco."""
-    hm = g.index.strftime("%H:%M")
-    win = g[(hm >= cfg.entry_start) & (hm <= cfg.entry_cutoff)]
-    if len(win) < 5:
+    hm = np.array(g.index.strftime("%H:%M"))
+    in_win = (hm >= cfg.entry_start) & (hm <= cfg.entry_cutoff)
+    if in_win.sum() < 5:
         return None
     # livelli in gioco: vicini al prezzo di apertura odierno
     in_play = [lv for lv in levels if abs(lv.price - today_open_price) <= cfg.in_play_pts * 3]
@@ -184,21 +185,32 @@ def run_day(g: pd.DataFrame, levels: list[Level], today_open_price: float,
         return None
     prices = [lv.price for lv in in_play]
 
+    closes = g["close"].to_numpy()
+    session_pos = np.where(hm <= cfg.session_close)[0]
+    if len(session_pos) == 0:
+        return None
+    close_pos = int(session_pos[-1])
+    day0 = g.index[0].date()
+    half = cfg.spread_pts / 2
+
     prev_close = today_open_price
-    for t, bar in win.iterrows():
-        cl = float(bar["close"])
-        after = g[(g.index > t) & (g.index.strftime("%H:%M") <= cfg.session_close)]
-        if len(after) == 0:
-            continue
+    for pos in np.where(in_win)[0]:
+        cl = float(closes[pos])
         for p in prices:
             # rottura AL RIALZO del livello → long
             if prev_close <= p + cfg.break_pts and cl >= p + cfg.break_pts:
+                after = g.iloc[pos + 1:close_pos + 1]
+                if len(after) == 0:
+                    continue
                 stop = _opposite_stop(p, "long", prices, cfg)
-                return _simulate(after, "long", cl + cfg.spread_pts / 2, stop, cfg, g.index[0].date())
+                return _simulate(after, "long", cl + half, stop, cfg, day0)
             # rottura AL RIBASSO del livello → short
             if prev_close >= p - cfg.break_pts and cl <= p - cfg.break_pts:
+                after = g.iloc[pos + 1:close_pos + 1]
+                if len(after) == 0:
+                    continue
                 stop = _opposite_stop(p, "short", prices, cfg)
-                return _simulate(after, "short", cl - cfg.spread_pts / 2, stop, cfg, g.index[0].date())
+                return _simulate(after, "short", cl - half, stop, cfg, day0)
         prev_close = cl
     return None
 
@@ -226,12 +238,13 @@ def backtest(df: pd.DataFrame, cfg: LevelsConfig | None = None) -> dict:
 
     level_map = build_level_map(d, cfg)
     days_sorted = sorted(level_map.keys())
+    day_to_i = {day: i for i, day in enumerate(days_sorted)}
 
     trades: list[LTrade] = []
     for day, g in d.groupby("day"):
         if day not in level_map:
             continue
-        lv = active_levels(day, level_map, days_sorted, cfg)
+        lv = active_levels(day, level_map, days_sorted, day_to_i, cfg)
         if not lv:
             continue
         hm = g.index.strftime("%H:%M")
