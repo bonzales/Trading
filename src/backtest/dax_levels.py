@@ -1,21 +1,21 @@
-"""Backtest v3: sistema a LIVELLI DI VOLUME multi-day sul DAX (M1).
+"""Backtest v3: sistema a LIVELLI DI VOLUME multi-day su indici (M1).
 
-Evoluzione di dax_open.py dopo che l'utente ha spiegato il metodo completo (vedi
-research/strategies/dax_open_volume.md). Non più un semplice rimbalzo sull'apertura,
-ma:
-  - una MAPPA di livelli lasciati dalle candele ad alto volume (apertura 09:00,
-    chiusura 17:30, spike di giornata), che il prezzo "ricorda" per giorni;
-  - ingresso sulla ROTTURA netta di un livello in gioco (finestra oraria flessibile);
-  - stop ancorato al livello di volume OPPOSTO più vicino;
-  - uscite meccaniche che APPROSSIMANO la gestione discrezionale (time-stop se non
-    si muove, pari a 1R, parziale, trailing sui runner).
+Metodo completo descritto dall'utente (vedi research/strategies/dax_open_volume.md):
+  - MAPPA di livelli lasciati dalle candele ad alto volume (apertura, chiusura,
+    spike), che il prezzo "ricorda" per giorni (normali ~5gg, "oro" a lungo);
+  - ingresso sulla ROTTURA netta di un livello in gioco, PIÙ setup al giorno;
+  - stop al livello di volume OPPOSTO più vicino;
+  - uscite proxy della gestione discrezionale (time-stop, pari 1R, parziale, trail).
 
-ONESTÀ: la gestione dello stop dell'utente era discrezionale/adattiva. Qui è una
-proxy meccanica: il backtest misura soprattutto se l'INGRESSO ha un edge.
+Multi-strumento: DAX (apertura 09:00 Berlino) e indici USA S&P500/NASDAQ/DowJones
+(apertura 15:30 Berlino). Usa make_config(instrument) per la sessione giusta.
+
+ONESTÀ: lo stop reale dell'utente era discrezionale; qui è una proxy meccanica →
+il backtest misura soprattutto l'edge dell'INGRESSO, su 4 mercati indipendenti.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, replace
 from datetime import date as date_cls
 from zoneinfo import ZoneInfo
 
@@ -23,15 +23,24 @@ import numpy as np
 import pandas as pd
 
 
+# Sessioni per strumento (orari Europe/Berlin). L'ingresso parte poco dopo
+# l'apertura e resta aperto per alcune ore (più setup al giorno).
+SESSIONS = {
+    "DAX":    dict(session_start="09:00", entry_start="09:06", entry_cutoff="12:00", session_close="17:30"),
+    "US500":  dict(session_start="15:30", entry_start="15:36", entry_cutoff="19:00", session_close="22:00"),
+    "NAS100": dict(session_start="15:30", entry_start="15:36", entry_cutoff="19:00", session_close="22:00"),
+    "US30":   dict(session_start="15:30", entry_start="15:36", entry_cutoff="19:00", session_close="22:00"),
+}
+
+
 @dataclass
 class LevelsConfig:
     tz: str = "Europe/Berlin"
     session_start: str = "09:00"
-    session_end: str = "17:30"
     entry_start: str = "09:06"
-    entry_cutoff: str = "11:00"       # oltre non si apre più
+    entry_cutoff: str = "12:00"
     session_close: str = "17:30"
-    # soglie volume (× mediana volume della sessione del giorno)
+    # livelli di volume
     vol_mult_normal: float = 5.0
     vol_mult_gold: float = 10.0
     keep_days_normal: int = 5
@@ -39,13 +48,15 @@ class LevelsConfig:
     max_levels_per_day: int = 4
     cluster_pts: float = 8.0
     # ingresso / rischio
-    in_play_pts: float = 25.0         # livello "in gioco" se il prezzo gli è vicino
-    break_pts: float = 6.0            # rottura netta: chiusura oltre il livello di
+    in_play_pts: float = 25.0
+    break_pts: float = 6.0
     stop_buffer_pts: float = 3.0
-    max_stop_pts: float = 45.0        # fallback se non c'è livello opposto
+    max_stop_pts: float = 45.0
+    max_trades_day: int = 6
+    cooldown_min: int = 3
     # uscite (proxy della gestione discrezionale)
-    time_stop_min: int = 12           # se dopo N minuti non si è mosso a favore…
-    time_stop_move: float = 8.0       # …di almeno questi punti → chiudo
+    time_stop_min: int = 12
+    time_stop_move: float = 8.0
     be_R: float = 1.0
     partial_R: float = 1.0
     partial_frac: float = 0.5
@@ -55,11 +66,19 @@ class LevelsConfig:
     start_equity: float = 10_000.0
 
 
+def make_config(instrument: str, **overrides) -> LevelsConfig:
+    """Config con la sessione giusta per lo strumento (+ eventuali override)."""
+    sess = SESSIONS.get(instrument.upper())
+    if sess is None:
+        raise ValueError(f"Sessione non definita per '{instrument}'. Note: {list(SESSIONS)}.")
+    return replace(LevelsConfig(), **sess, **overrides)
+
+
 @dataclass
 class Level:
     price: float
     born: date_cls
-    tier: str          # "normal" | "gold"
+    tier: str  # "normal" | "gold"
 
 
 @dataclass
@@ -74,45 +93,32 @@ class LTrade:
     reason: str
 
 
-def _hm(idx):
-    return idx.strftime("%H:%M")
-
-
 def build_level_map(d: pd.DataFrame, cfg: LevelsConfig) -> dict:
-    """Per ogni giorno, i livelli lasciati dalle candele ad alto volume.
-
-    d: DataFrame M1 con indice locale (Europe/Berlin) e colonna 'day'.
-    Ritorna {day: [Level, ...]}.
-    """
+    """Per ogni giorno, i livelli lasciati dalle candele ad alto volume."""
     out: dict = {}
     for day, g in d.groupby("day"):
         hm = g.index.strftime("%H:%M")
-        sess = g[(hm >= cfg.session_start) & (hm <= cfg.session_end)]
+        sess = g[(hm >= cfg.session_start) & (hm <= cfg.session_close)]
         if len(sess) < 30:
             continue
         base = float(sess["volume"].median())
         if base <= 0:
-            continue
-        big = sess[sess["volume"] >= cfg.vol_mult_normal * base].copy()
-        if big.empty:
             out[day] = []
             continue
+        big = sess[sess["volume"] >= cfg.vol_mult_normal * base]
         big = big.sort_values("volume", ascending=False).head(cfg.max_levels_per_day)
         levels: list[Level] = []
-        for t, row in big.iterrows():
+        for _, row in big.iterrows():
             price = float(row["close"])
-            tier = "gold" if row["volume"] >= cfg.vol_mult_gold * base else "normal"
-            # cluster: salta se troppo vicino a un livello già preso (tieni il primo, più forte)
             if any(abs(price - lv.price) < cfg.cluster_pts for lv in levels):
                 continue
+            tier = "gold" if row["volume"] >= cfg.vol_mult_gold * base else "normal"
             levels.append(Level(price, day, tier))
         out[day] = levels
     return out
 
 
-def active_levels(day, level_map: dict, days_sorted: list, day_to_i: dict,
-                  cfg: LevelsConfig) -> list[Level]:
-    """Livelli validi (dei giorni PRECEDENTI) per la data `day`."""
+def active_levels(day, level_map, days_sorted, day_to_i, cfg) -> list[Level]:
     i = day_to_i[day]
     out: list[Level] = []
     for j in range(max(0, i - cfg.keep_days_gold), i):
@@ -124,107 +130,104 @@ def active_levels(day, level_map: dict, days_sorted: list, day_to_i: dict,
     return out
 
 
-def _simulate(after: pd.DataFrame, side: str, entry: float, stop: float,
-              cfg: LevelsConfig, day) -> LTrade:
-    half = cfg.spread_pts / 2.0
-    sign = 1.0 if side == "long" else -1.0
-    r_points = max(abs(entry - stop), 1e-9)
-    peak = entry
-    cur_stop = stop
-    be_done = partial_done = False
-    partial_pnl = 0.0
-    remaining = 1.0
-    fav = lambda p: sign * (p - entry)
-
-    for n, (t, bar) in enumerate(after.iterrows()):
-        hi, lo, cl = float(bar["high"]), float(bar["low"]), float(bar["close"])
-        # stop / trailing
-        if (lo <= cur_stop) if side == "long" else (hi >= cur_stop):
-            ex = cur_stop - sign * half
-            pnl = partial_pnl + remaining * fav(ex)
-            return LTrade(day, side, entry, stop, r_points, pnl, pnl / r_points,
-                          "stop" if not partial_done else "trail")
-        fav_ext = hi if side == "long" else lo
-        if sign * (fav_ext - peak) > 0:
-            peak = fav_ext
-        prof_R = fav(fav_ext) / r_points
-        # time-stop: dopo N minuti senza movimento a favore → chiudo
-        if not partial_done and n >= cfg.time_stop_min and fav(cl) < cfg.time_stop_move:
-            ex = cl - sign * half
-            pnl = partial_pnl + remaining * fav(ex)
-            return LTrade(day, side, entry, stop, r_points, pnl, pnl / r_points, "time_stop")
-        if not be_done and prof_R >= cfg.be_R:
-            cur_stop = entry
-            be_done = True
-        if not partial_done and prof_R >= cfg.partial_R:
-            tp = entry + sign * cfg.partial_R * r_points
-            partial_pnl += cfg.partial_frac * (fav(tp) - half)
-            remaining -= cfg.partial_frac
-            partial_done = True
-            cur_stop = entry
-        if partial_done:
-            trail = peak - sign * cfg.trail_R * r_points
-            cur_stop = max(cur_stop, trail) if side == "long" else min(cur_stop, trail)
-
-    last = after.iloc[-1]
-    ex = float(last["close"]) - sign * half
-    pnl = partial_pnl + remaining * fav(ex)
-    return LTrade(day, side, entry, stop, r_points, pnl, pnl / r_points, "session_close")
-
-
-def run_day(g: pd.DataFrame, levels: list[Level], today_open_price: float,
-            cfg: LevelsConfig) -> LTrade | None:
-    """Un giorno: prende la PRIMA rottura netta di un livello in gioco."""
-    hm = np.array(g.index.strftime("%H:%M"))
-    in_win = (hm >= cfg.entry_start) & (hm <= cfg.entry_cutoff)
-    if in_win.sum() < 5:
-        return None
-    # livelli in gioco: vicini al prezzo di apertura odierno
-    in_play = [lv for lv in levels if abs(lv.price - today_open_price) <= cfg.in_play_pts * 3]
-    if not in_play:
-        return None
-    prices = [lv.price for lv in in_play]
-
-    closes = g["close"].to_numpy()
-    session_pos = np.where(hm <= cfg.session_close)[0]
-    if len(session_pos) == 0:
-        return None
-    close_pos = int(session_pos[-1])
-    day0 = g.index[0].date()
-    half = cfg.spread_pts / 2
-
-    prev_close = today_open_price
-    for pos in np.where(in_win)[0]:
-        cl = float(closes[pos])
-        for p in prices:
-            # rottura AL RIALZO del livello → long
-            if prev_close <= p + cfg.break_pts and cl >= p + cfg.break_pts:
-                after = g.iloc[pos + 1:close_pos + 1]
-                if len(after) == 0:
-                    continue
-                stop = _opposite_stop(p, "long", prices, cfg)
-                return _simulate(after, "long", cl + half, stop, cfg, day0)
-            # rottura AL RIBASSO del livello → short
-            if prev_close >= p - cfg.break_pts and cl <= p - cfg.break_pts:
-                after = g.iloc[pos + 1:close_pos + 1]
-                if len(after) == 0:
-                    continue
-                stop = _opposite_stop(p, "short", prices, cfg)
-                return _simulate(after, "short", cl - half, stop, cfg, day0)
-        prev_close = cl
-    return None
-
-
-def _opposite_stop(level: float, side: str, prices: list, cfg: LevelsConfig) -> float:
-    """Stop al livello di volume opposto più vicino; fallback a max_stop_pts."""
+def _opposite_stop(level, side, prices, cfg):
     if side == "long":
         below = [p for p in prices if p < level - 1e-6]
         base = max(below) if below else level - cfg.max_stop_pts
         return base - cfg.stop_buffer_pts
-    else:
-        above = [p for p in prices if p > level + 1e-6]
-        base = min(above) if above else level + cfg.max_stop_pts
-        return base + cfg.stop_buffer_pts
+    above = [p for p in prices if p > level + 1e-6]
+    base = min(above) if above else level + cfg.max_stop_pts
+    return base + cfg.stop_buffer_pts
+
+
+def _simulate(highs, lows, closes, start, end, side, entry, stop, cfg, day):
+    """Gestisce la posizione (posizionale, veloce). Ritorna (LTrade, exit_pos)."""
+    half = cfg.spread_pts / 2.0
+    sign = 1.0 if side == "long" else -1.0
+    r = max(abs(entry - stop), 1e-9)
+    peak = entry
+    cur_stop = stop
+    be = part = False
+    ppnl = 0.0
+    rem = 1.0
+    fav = lambda p: sign * (p - entry)
+
+    for pos in range(start, end + 1):
+        hi, lo, cl = highs[pos], lows[pos], closes[pos]
+        if (lo <= cur_stop) if side == "long" else (hi >= cur_stop):
+            ex = cur_stop - sign * half
+            pnl = ppnl + rem * fav(ex)
+            return LTrade(day, side, entry, stop, r, pnl, pnl / r,
+                          "stop" if not part else "trail"), pos
+        fe = hi if side == "long" else lo
+        if sign * (fe - peak) > 0:
+            peak = fe
+        pr = fav(fe) / r
+        if not part and (pos - start) >= cfg.time_stop_min and fav(cl) < cfg.time_stop_move:
+            ex = cl - sign * half
+            pnl = ppnl + rem * fav(ex)
+            return LTrade(day, side, entry, stop, r, pnl, pnl / r, "time_stop"), pos
+        if not be and pr >= cfg.be_R:
+            cur_stop = entry
+            be = True
+        if not part and pr >= cfg.partial_R:
+            tp = entry + sign * cfg.partial_R * r
+            ppnl += cfg.partial_frac * (fav(tp) - half)
+            rem -= cfg.partial_frac
+            part = True
+            cur_stop = entry
+        if part:
+            trail = peak - sign * cfg.trail_R * r
+            cur_stop = max(cur_stop, trail) if side == "long" else min(cur_stop, trail)
+
+    ex = closes[end] - sign * half
+    pnl = ppnl + rem * fav(ex)
+    return LTrade(day, side, entry, stop, r, pnl, pnl / r, "session_close"), end
+
+
+def run_day(g, levels, today_open, cfg) -> list[LTrade]:
+    """Un giorno: PIÙ setup. Prende ogni rottura netta, con cooldown tra i trade."""
+    hm = np.array(g.index.strftime("%H:%M"))
+    sess = np.where(hm <= cfg.session_close)[0]
+    if len(sess) == 0:
+        return []
+    close_pos = int(sess[-1])
+    ewin = np.where((hm >= cfg.entry_start) & (hm <= cfg.entry_cutoff))[0]
+    if len(ewin) < 5:
+        return []
+    prices = [lv.price for lv in levels if abs(lv.price - today_open) <= cfg.in_play_pts * 3]
+    if not prices:
+        return []
+
+    highs = g["high"].to_numpy()
+    lows = g["low"].to_numpy()
+    closes = g["close"].to_numpy()
+    day0 = g.index[0].date()
+    half = cfg.spread_pts / 2.0
+    last = int(ewin[-1])
+
+    trades: list[LTrade] = []
+    pos = int(ewin[0])
+    prev_close = today_open
+    while pos <= last and len(trades) < cfg.max_trades_day:
+        cl = float(closes[pos])
+        hit = None
+        for p in prices:
+            if prev_close <= p + cfg.break_pts and cl >= p + cfg.break_pts:
+                hit = ("long", cl + half, _opposite_stop(p, "long", prices, cfg))
+                break
+            if prev_close >= p - cfg.break_pts and cl <= p - cfg.break_pts:
+                hit = ("short", cl - half, _opposite_stop(p, "short", prices, cfg))
+                break
+        if hit is not None and pos < close_pos:
+            tr, ex = _simulate(highs, lows, closes, pos + 1, close_pos, *hit, cfg, day0)
+            trades.append(tr)
+            pos = ex + cfg.cooldown_min
+            prev_close = float(closes[min(ex, close_pos)])
+        else:
+            prev_close = cl
+            pos += 1
+    return trades
 
 
 def backtest(df: pd.DataFrame, cfg: LevelsConfig | None = None) -> dict:
@@ -252,13 +255,11 @@ def backtest(df: pd.DataFrame, cfg: LevelsConfig | None = None) -> dict:
         if openrow.empty:
             continue
         today_open = float(openrow.iloc[0]["open"])
-        tr = run_day(g.drop(columns="day"), lv, today_open, cfg)
-        if tr is not None:
-            trades.append(tr)
+        trades.extend(run_day(g.drop(columns="day"), lv, today_open, cfg))
     return _summarize(trades, cfg)
 
 
-def _summarize(trades: list, cfg: LevelsConfig) -> dict:
+def _summarize(trades, cfg) -> dict:
     equity = cfg.start_equity
     curve = [equity]
     for tr in trades:
