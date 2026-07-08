@@ -178,9 +178,51 @@ class VolumeLevelStrategy:
         return Signal(FLAT, price, atr)
 
 
+@dataclass
+class DonchianStrategy:
+    """Trend-following classico (stile Turtle): rottura del canale di Donchian.
+
+    Long quando il prezzo chiude sopra il massimo degli ultimi `channel` giorni,
+    short sotto il minimo. Niente target: stop/trailing ATR (dal risk_manager) fanno
+    correre i trend. È lo stile con più evidenza storica di un edge reale e modesto,
+    soprattutto DIVERSIFICATO su molti mercati (indici, forex, materie prime).
+    """
+
+    name: str = "donchian"
+    channel: int = 20
+    atr_period: int = 14
+
+    def prepare(self, df: pd.DataFrame) -> pd.DataFrame:
+        out = df.copy()
+        dc = ind.donchian(out, self.channel)
+        out["dc_upper"] = dc["dc_upper"]
+        out["dc_lower"] = dc["dc_lower"]
+        out["atr"] = ind.atr(out, self.atr_period)
+        return out
+
+    @property
+    def warmup(self) -> int:
+        return max(self.channel, self.atr_period) + 1
+
+    def signal(self, df: pd.DataFrame, i: int) -> Signal:
+        row = df.iloc[i]
+        price, atr = float(row["close"]), float(row["atr"])
+        if pd.isna(atr) or atr <= 0 or pd.isna(row["dc_upper"]):
+            return Signal(FLAT, price, 0.0)
+        if price > row["dc_upper"]:
+            return Signal(LONG, price, atr)
+        if price < row["dc_lower"]:
+            return Signal(SHORT, price, atr)
+        return Signal(FLAT, price, atr)
+
+
 def make_strategy(name: str, **params) -> Strategy:
     """Factory: traduce nome + parametri in un'istanza di strategia."""
-    registry = {"pullback": PullbackStrategy, "vol_levels": VolumeLevelStrategy}
+    registry = {
+        "pullback": PullbackStrategy,
+        "vol_levels": VolumeLevelStrategy,
+        "donchian": DonchianStrategy,
+    }
     if name not in registry:
         raise ValueError(
             f"Strategia '{name}' non disponibile. Disponibili: {', '.join(registry)}."
