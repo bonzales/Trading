@@ -1,0 +1,14 @@
+{
+  "type": "backtest",
+  "strategy": "dax_open_volume",
+  "variant": "v3 fedele (multi-trade/giorno) + multi-indice + parametri normalizzati alla volatilita, no time-stop, spread realistici per indice",
+  "tf": "M1", "source": "Dukascopy mid", "period": "~3y (2023-2026)",
+  "scala_M1_mediana_range": {"DAX": 4.5, "US500": 1.0, "NAS100": 5.3, "US30": 7.0},
+  "risultati": {
+    "DAX":    {"n": 232, "PF": 1.167, "win": 0.53, "ret": 0.352, "oos_1a": {"n":162,"PF":0.939}, "oos_2a": {"n":69,"PF":1.863}},
+    "US500":  {"n": 356, "PF": 0.918, "win": 0.47, "ret": -0.314, "oos_1a": {"n":145,"PF":0.817}, "oos_2a": {"n":211,"PF":0.991}},
+    "NAS100": {"n": 5, "PF": 2.386, "nota": "troppo pochi trade: non valido"},
+    "US30":   {"n": 4, "PF": 2.252, "nota": "troppo pochi trade: non valido"}
+  },
+  "verdict": "REJECTED come sistema meccanico. Frequenza reale (~1/gg), 4 mercati, parametri normalizzati alla volatilita, OOS su due meta. US500 (356 trade, campione grande e indipendente) PERDE in entrambe le meta (PF 0.92) -> il 'pattern vincente' DAX 2025-26 NON si replica su un mercato diverso = fortuna di campione (69 trade). DAX aggregato positivo ma 1a meta (162 trade) break-even/perde. NAS/Dow: il setup non scatta (4-5 trade) -> fenomeno non robusto/universale. Coerente su TUTTE le meccanizzazioni (v1..v3-multi): l'edge era discrezionale, non meccanizzabile con vantaggio dopo costi."
+}

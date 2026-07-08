@@ -1,6 +1,6 @@
 ---
 type: experiment
-status: testing
+status: rejected
 tags: [indici, dax, scalping, m1, volume, multi-day, backtest]
 updated: 2026-07-06
 links: ["[[dax_open_volume]]", "[[DAX]]"]
@@ -32,15 +32,18 @@ Il positivo aggregato è un **miraggio da piccolo campione**:
 Il guadagno è concentrato in ~39 operazioni recenti. Non è stabilità, è fortuna
 di campione.
 
-## Conclusione + gate
-**Verdetto SOSPESO — non rejected.** Difetto di fedeltà scoperto dopo il test:
-questa v3 genera ~50 trade/anno (≈1/settimana), ma l'utente ne faceva **≥1 al
-giorno** (~4/settimana per strumento). Quindi cattura ~1/5 dei setup reali → il
-risultato (e la sua instabilità OOS) riflette un'implementazione **azzoppata**, non
-la strategia. Rigettarla ora sarebbe scorretto.
+## Conclusione + gate → poi RISOLTA (vedi sotto)
+Difetto di fedeltà: questa v3 generava ~50 trade/anno (≈1/settimana) vs ≥1/giorno
+reale. Verdetto sospeso e rifatto con la versione fedele multi-trade + multi-indice.
 
-**Prossimo passo:** versione fedele alla frequenza reale (più setup/giorno) +
-estensione ai 3 indici USA (apertura 15:30) → 4 mercati indipendenti come OOS
-naturale. Il verdetto si emette dopo quel test. Nota metodologica utile comunque:
-senza time-stop l'aggregato saliva (PF 1,11 a 2,5pt) ma per il momento su base
-piccola e sbilanciata nel tempo — da riconfermare con frequenza e strumenti veri.
+## Esito del test fedele (multi-trade, 4 indici, parametri normalizzati)
+Fonte: `raw/exp_2026-07-06_dax_levels_v3_multi.json`. Frequenza reale (~1/gg).
+- **US500** (356 trade, campione grande e INDIPENDENTE): **PF 0,92, perde in
+  entrambe le metà.** Prova decisiva: il pattern vincente del DAX 2025-26 non si
+  replica su un mercato diverso → fortuna di campione, non edge.
+- **DAX**: aggregato 1,17 ma 1ª metà 0,94; positivo solo nei 69 trade recenti.
+- **NAS100/US30**: 4-5 trade → setup non robusto lì.
+
+**Verdetto finale: `rejected` come sistema meccanico.** Coerente su tutte le
+meccanizzazioni. L'edge dell'utente era discrezionale. Ulteriore tuning verso il
+campione DAX recente = overfitting: si chiude qui.
