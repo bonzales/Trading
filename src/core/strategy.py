@@ -116,10 +116,11 @@ class VolumeLevelStrategy:
     """
 
     name: str = "vol_levels"
+    mode: str = "breakout"       # "breakout" (rottura) | "bounce" (rimbalzo)
     vol_window: int = 100        # finestra per la mediana di volume
     vol_mult: float = 3.0        # soglia: volume ≥ vol_mult × mediana → livello
     level_life: int = 120        # barre di vita di un livello (memoria multi-day)
-    break_atr: float = 0.1       # rottura netta: oltre il livello di break_atr×ATR
+    break_atr: float = 0.1       # tolleranza/rottura in multipli di ATR
     atr_period: int = 14
 
     def prepare(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -128,26 +129,37 @@ class VolumeLevelStrategy:
         vol_med = out["volume"].rolling(self.vol_window, min_periods=self.vol_window // 2).median()
         high_vol = (out["volume"] >= self.vol_mult * vol_med).to_numpy()
         close = out["close"].to_numpy()
+        high = out["high"].to_numpy()
+        low = out["low"].to_numpy()
         atr = out["atr"].to_numpy()
         n = len(out)
-        long_break = [False] * n
-        short_break = [False] * n
+        long_sig = [False] * n
+        short_sig = [False] * n
+        bounce = self.mode == "bounce"
         levels: list[tuple[float, int]] = []  # (prezzo, indice di scadenza)
         for i in range(n):
             if levels:
                 levels = [(p, e) for (p, e) in levels if e >= i]
             if i > 0 and not pd.isna(atr[i]) and atr[i] > 0:
                 buf = self.break_atr * atr[i]
-                pc, c = close[i - 1], close[i]
+                pc, c, hi, lo = close[i - 1], close[i], high[i], low[i]
                 for p, _ in levels:
-                    if pc < p + buf <= c:
-                        long_break[i] = True
-                    elif pc > p - buf >= c:
-                        short_break[i] = True
+                    if bounce:
+                        # rimbalzo: prezzo TORNA sul livello e lo RISPETTA (market-neutral)
+                        if pc > p and lo <= p + buf and c >= p:      # supporto tiene → long
+                            long_sig[i] = True
+                        elif pc < p and hi >= p - buf and c <= p:    # resistenza tiene → short
+                            short_sig[i] = True
+                    else:
+                        # rottura: prezzo ATTRAVERSA il livello con forza
+                        if pc < p + buf <= c:
+                            long_sig[i] = True
+                        elif pc > p - buf >= c:
+                            short_sig[i] = True
             if high_vol[i]:
                 levels.append((close[i], i + self.level_life))
-        out["long_break"] = long_break
-        out["short_break"] = short_break
+        out["long_break"] = long_sig
+        out["short_break"] = short_sig
         return out
 
     @property
