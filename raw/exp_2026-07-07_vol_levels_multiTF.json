@@ -1,0 +1,21 @@
+{
+  "type": "backtest",
+  "strategy": "vol_levels",
+  "variant": "matrice completa: rottura+rimbalzo x M15/H1/H4 x 4 indici + walk-forward su H4 rimbalzo",
+  "source": "Dukascopy mid", "spread_per_indice": {"DAX":1.5,"US500":0.6,"NAS100":2.5,"US30":3.5},
+  "PF_matrix": {
+    "bounce":   {"M15": {"DAX":0.982,"US500":0.971,"NAS100":1.012,"US30":1.005},
+                 "H1":  {"DAX":0.982,"US500":0.959,"NAS100":1.024,"US30":0.967},
+                 "H4":  {"DAX":0.947,"US500":1.052,"NAS100":1.049,"US30":1.111}},
+    "breakout": {"M15": {"DAX":0.892,"US500":0.964,"NAS100":1.047,"US30":0.965},
+                 "H1":  {"DAX":0.999,"US500":0.988,"NAS100":1.134,"US30":0.910},
+                 "H4":  {"DAX":1.001,"US500":0.899,"NAS100":0.938,"US30":0.880}}
+  },
+  "walk_forward_H4_bounce_IS_to_OOS": {
+    "DAX":   {"IS":1.405,"OOS":0.958,"overfitting":true},
+    "US500": {"IS":1.630,"OOS":0.833,"overfitting":true},
+    "NAS100":{"IS":1.204,"OOS":0.924,"overfitting":true},
+    "US30":  {"IS":1.198,"OOS":1.358,"overfitting":false}
+  },
+  "verdict": "REJECTED come edge meccanico. 24 test (2 modi x 3 TF x 4 indici) tutti appiccicati al pareggio (PF 0.88-1.13). Su H1/H4 i costi non sono fatali (regime giusto) ma non emerge edge. Il breakout positivo (NAS H1 1.13) e' beta (long in uptrend, sottoperforma buy&hold). Il rimbalzo (market-neutral) e' piatto ovunque -> i livelli-volume non hanno potere S/R predittivo oltre il rumore. Walk-forward vero su H4 rimbalzo: 3/4 overfitting (IS buono, OOS <1); solo US30 regge (1/4 = caso). Linea 'livelli di volume' esplorata a fondo (scalping M1 -> M15/H1/H4, rottura+rimbalzo, 4 mercati, walk-forward): nessun edge robusto. Chiusa."
+}

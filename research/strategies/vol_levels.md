@@ -1,9 +1,9 @@
 ---
 type: strategy
-status: testing
+status: rejected
 tags: [indici, volume, h1, swing, breakout, mean-reversion]
 updated: 2026-07-07
-links: ["[[dax_open_volume]]", "[[exp_2026-07-07_vol_levels_H1]]", "[[NAS100]]"]
+links: ["[[dax_open_volume]]", "[[exp_2026-07-07_vol_levels_H1]]", "[[exp_2026-07-07_vol_levels_multiTF]]", "[[NAS100]]"]
 ---
 # vol_levels (livelli di volume su timeframe alto)
 
@@ -26,12 +26,20 @@ quindi eredita gestione rischio (stop/TP/trailing ATR), costi e **walk-forward**
 | 2026-07-07 | rottura H1 | DAX/US500/NAS/US30 (6y) | trend-following long-biased, non edge neutrale | [[exp_2026-07-07_vol_levels_H1]] |
 
 ## Verdetto corrente
-`testing`. Su H1 il **regime dei costi è giusto** (quasi tutto vicino al pareggio, non
-più perdite nette come su M1). Ma la **rottura** è trend-following: NAS100 +119% solo
-perché il NASDAQ è salito (sottoperforma il buy&hold +178%; profitto quasi tutto sui
-long); altri 3 indici pari/negativi. **Non un edge robusto.** Il filtro volume aggiunge
-un po' (PF 1,13 vs 1,01 senza) → indizio che qualcosa c'è. Prossimo: provare il
-**rimbalzo** (market-neutral) e H4.
+`rejected` come edge meccanico, dopo esplorazione **esaustiva** (fonte:
+`raw/exp_2026-07-07_vol_levels_multiTF.json`):
+- **24 test** (rottura + rimbalzo × M15/H1/H4 × 4 indici): tutti appiccicati al
+  pareggio (PF 0,88–1,13).
+- Su H1/H4 i **costi non sono più fatali** (regime giusto) — ma non emerge edge.
+- Il **breakout** positivo (NAS H1 1,13) è **beta** (long in uptrend, sottoperforma
+  il buy&hold). Il **rimbalzo** (market-neutral) è **piatto ovunque** → i livelli di
+  volume non hanno potere S/R predittivo oltre il rumore.
+- **Walk-forward vero** (H4 rimbalzo, ottimizza su train / valida OOS): **3/4
+  overfitting** (IS buono → OOS <1). Solo US30 regge (1/4 = caso).
+
+Conclusione: la linea "livelli di volume" è stata esplorata a fondo (scalping M1 →
+M15/H1/H4, rottura + rimbalzo, 4 mercati, walk-forward). **Nessun edge robusto.**
+Chiusa. Riaprire solo con un meccanismo nuovo e diverso, non con altri ritocchi.
 
 ## Note
 Attenzione al bias di beta: su un mercato molto trendante un breakout long guadagna a
