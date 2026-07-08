@@ -1,0 +1,19 @@
+{
+  "type": "backtest",
+  "strategy": "vol_levels",
+  "variant": "rottura livelli-volume su H1 (swing), 4 indici, 6 anni, spread realistici",
+  "tf": "H1", "source": "Dukascopy mid",
+  "risultati_in_sample_due_meta": {
+    "DAX":    {"n": 1306, "PF": 0.999, "ret": -0.007, "h1_PF": 0.933, "h2_PF": 1.071},
+    "US500":  {"n": 1541, "PF": 0.988, "ret": -0.119, "h1_PF": 1.036, "h2_PF": 0.951},
+    "NAS100": {"n": 1058, "PF": 1.134, "ret": 1.192, "h1_PF": 1.073, "h2_PF": 1.166},
+    "US30":   {"n": 1674, "PF": 0.910, "ret": -0.661, "h1_PF": 0.951, "h2_PF": 0.840}
+  },
+  "diagnostico_NAS100": {
+    "buy_and_hold_6y": 1.78,
+    "long_PF": 1.26, "long_pnl": 10935, "short_PF": 1.02, "short_pnl": 941,
+    "baseline_senza_filtro_volume_PF": 1.009,
+    "vol_mult5_PF": 1.072
+  },
+  "verdict": "Su H1 i costi non sono piu' fatali (quasi tutto ~break-even, non piu' perdite nette): il timeframe alto e' il regime giusto. MA il breakout sui livelli-volume e' trend-following long-biased: NAS100 positivo (+119%) solo perche' il NASDAQ e' salito, e SOTTOPERFORMA il buy&hold (+178%); profitto quasi tutto sui long; sugli altri 3 indici pari/negativo. Non un edge neutrale. Il filtro volume aggiunge un po' (1.13 vs 1.01 senza) = indizio. Prossima ipotesi da testare: versione RIMBALZO (mean-reversion) sui livelli, che sarebbe market-neutral."
+}

@@ -105,9 +105,70 @@ class PullbackStrategy:
         return Signal(FLAT, price, atr)
 
 
+@dataclass
+class VolumeLevelStrategy:
+    """Rottura di livelli lasciati da candele ad alto volume (swing, H1/H4).
+
+    Idea dell'utente portata su timeframe alto, dove i costi pesano poco: una barra
+    con volume anomalo lascia un livello S/R che il prezzo "ricorda" per giorni. Si
+    entra sulla ROTTURA del livello (long se lo supera al rialzo, short al ribasso),
+    con conferma di `break_atr` × ATR. Stop/target/trailing li mette il risk_manager.
+    """
+
+    name: str = "vol_levels"
+    vol_window: int = 100        # finestra per la mediana di volume
+    vol_mult: float = 3.0        # soglia: volume ≥ vol_mult × mediana → livello
+    level_life: int = 120        # barre di vita di un livello (memoria multi-day)
+    break_atr: float = 0.1       # rottura netta: oltre il livello di break_atr×ATR
+    atr_period: int = 14
+
+    def prepare(self, df: pd.DataFrame) -> pd.DataFrame:
+        out = df.copy()
+        out["atr"] = ind.atr(out, self.atr_period)
+        vol_med = out["volume"].rolling(self.vol_window, min_periods=self.vol_window // 2).median()
+        high_vol = (out["volume"] >= self.vol_mult * vol_med).to_numpy()
+        close = out["close"].to_numpy()
+        atr = out["atr"].to_numpy()
+        n = len(out)
+        long_break = [False] * n
+        short_break = [False] * n
+        levels: list[tuple[float, int]] = []  # (prezzo, indice di scadenza)
+        for i in range(n):
+            if levels:
+                levels = [(p, e) for (p, e) in levels if e >= i]
+            if i > 0 and not pd.isna(atr[i]) and atr[i] > 0:
+                buf = self.break_atr * atr[i]
+                pc, c = close[i - 1], close[i]
+                for p, _ in levels:
+                    if pc < p + buf <= c:
+                        long_break[i] = True
+                    elif pc > p - buf >= c:
+                        short_break[i] = True
+            if high_vol[i]:
+                levels.append((close[i], i + self.level_life))
+        out["long_break"] = long_break
+        out["short_break"] = short_break
+        return out
+
+    @property
+    def warmup(self) -> int:
+        return self.vol_window + self.atr_period + 1
+
+    def signal(self, df: pd.DataFrame, i: int) -> Signal:
+        row = df.iloc[i]
+        price, atr = float(row["close"]), float(row["atr"])
+        if pd.isna(atr) or atr <= 0:
+            return Signal(FLAT, price, 0.0)
+        if row["long_break"]:
+            return Signal(LONG, price, atr)
+        if row["short_break"]:
+            return Signal(SHORT, price, atr)
+        return Signal(FLAT, price, atr)
+
+
 def make_strategy(name: str, **params) -> Strategy:
     """Factory: traduce nome + parametri in un'istanza di strategia."""
-    registry = {"pullback": PullbackStrategy}
+    registry = {"pullback": PullbackStrategy, "vol_levels": VolumeLevelStrategy}
     if name not in registry:
         raise ValueError(
             f"Strategia '{name}' non disponibile. Disponibili: {', '.join(registry)}."
