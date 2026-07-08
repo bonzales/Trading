@@ -1,6 +1,6 @@
 ---
 type: strategy
-status: edge-confirmed
+status: rejected
 tags: [trend-following, daily, breakout, multi-mercato, donchian]
 updated: 2026-07-07
 links: ["[[exp_2026-07-07_donchian_daily]]", "[[XAU_USD]]", "[[USD_JPY]]"]
@@ -26,23 +26,26 @@ target che tagli i runner). Paniere: indici (DAX, US500, NAS100, US30), forex ma
 | 2026-07-07 | **walk-forward** (ottimizza ch su train, valida OOS) | **regge: 5/8 OOS>1**, OOS medio 1,83 | [[exp_2026-07-07_donchian_daily]] |
 
 ## Verdetto corrente
-`edge-confirmed` **a livello di paniere diversificato.** È la prima strategia del
-progetto a superare il walk-forward senza crollare (i livelli di volume erano 3/4
-overfitting; qui 5/8 reggono OOS, e i trenders forti — indici USA, yen, oro — tengono).
+`rejected` su questo paniere/periodo. **CORREZIONE di un "edge-confirmed" emesso
+troppo in fretta** (2026-07-07): l'entusiasmo iniziale si reggeva su un sottoinsieme
+favorevole (8 mercati) e su un walk-forward la cui media OOS (1,83) era **gonfiata da
+2 outlier** (oro 6,07, JPY 2,43) e dall'ottimizzazione del canale per-mercato.
 
-**Cautele (load-bearing):**
-- Edge **modesto**: le medie OOS sono gonfiate da oro (6,07) e JPY (outlier di trend
-  eccezionali 2022–24). Attesa realistica di portafoglio ~**1,1–1,2** di PF, con
-  drawdown veri (−10/15%). Non è un bancomat.
-- **Non tutti i mercati funzionano**: DAX, GBP, EUR sono deboli/negativi. È normale nel
-  trend-following: si tiene il paniere, non il singolo. Valutare se escludere i
-  perdenti cronici o tenerli per diversificazione (rischio di curve-fitting nella scelta).
-- Va tradato **diversificato**, mai un mercato solo.
+Test più onesto — **paniere ampliato a 14 mercati, parametro fisso, equal-weight,
+curva equity intera** (fonte aggiornata `raw/exp_2026-07-07_donchian_daily.json`):
+- **portafoglio PIATTO**: CAGR −0,2%…+0,1%, Sharpe ~0, su TUTTI i canali (20/55/100/150).
+- ~metà mercati positivi (oro, indici USA, CAD, JPY), ~metà negativi (UK100 −32%, NZD
+  −24%, CHF −18%, GBP, DAX): i perdenti pareggiano i vincenti. Netto ≈ zero.
 
-## Prossimo passo (gate §5)
-**Paper trading su demo** (settimane, non ore) prima di qualsiasi live. È il motivo
-per cui ora serve davvero attivare l'IB Gateway (finora rimandato): qui c'è un
-candidato che merita il paper.
+Contesto (non una scusa): il 2011–2026 è un **drought documentato per il trend-following**
+(CTA in sofferenza). Non prova che il TF sia morto in assoluto, ma **su questi dati non
+c'è edge**. Riaprire solo con costruzione diversa (vol-targeting, più mercati, storia
+pre-2011) e sempre validato OOS — non selezionando i mercati vincenti col senno di poi.
+
+## Lezione METODOLOGICA (importante)
+Un walk-forward con media OOS alta ma **trainata da 1-2 outlier** non è un edge. La
+prova pulita è il **portafoglio intero a parametro fisso**. Applicare la stessa severità
+ai risultati che si spera siano veri.
 
 ## Note
 Trend-following = pochi trade (~8/anno/mercato), win rate ~40%, guadagno dai pochi

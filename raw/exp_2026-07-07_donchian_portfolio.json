@@ -1,0 +1,15 @@
+{
+  "type": "backtest",
+  "strategy": "donchian",
+  "variant": "CORREZIONE: portafoglio equal-weight, 14 mercati daily, parametro fisso, ~15y",
+  "note": "Test onesto che smentisce l'edge-confirmed prematuro. Paniere ampliato (aggiunti UK100, AUD/CHF/CAD/NZD, argento).",
+  "portafoglio_equal_weight_per_canale": {
+    "ch20":  {"CAGR": -0.002, "Sharpe": -0.08, "maxDD": -0.07},
+    "ch55":  {"CAGR":  0.001, "Sharpe":  0.07, "maxDD": -0.04},
+    "ch100": {"CAGR":  0.001, "Sharpe":  0.08, "maxDD": -0.04},
+    "ch150": {"CAGR":  0.001, "Sharpe":  0.09, "maxDD": -0.03}
+  },
+  "contributi_per_mercato_ch20": {"XAU_USD":0.39,"US30":0.11,"USD_CAD":0.09,"USD_JPY":0.04,"US500":0.04,"EUR_USD":0.03,"NAS100":0.02,"AUD_USD":-0.05,"XAG_USD":-0.11,"DAX":-0.13,"GBP_USD":-0.14,"USD_CHF":-0.18,"NZD_USD":-0.24,"UK100":-0.32},
+  "anni_positivi": "8/16",
+  "verdict": "REJECTED su questo paniere/periodo. Portafoglio PIATTO (CAGR ~0%, Sharpe ~0) su tutti i canali. L'edge-confirmed precedente era un errore: reggeva su sottoinsieme favorevole + walk-forward con media OOS gonfiata da 2 outlier (oro, JPY) + ottimizzazione per-mercato. ~Meta mercati positivi ~meta negativi, netto ~zero. Contesto: 2011-26 e' un drought documentato per il trend-following. Lezione: un WF con media OOS alta trainata da outlier NON e' edge; la prova pulita e' il portafoglio intero a parametro fisso."
+}

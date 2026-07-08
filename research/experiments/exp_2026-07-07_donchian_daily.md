@@ -1,6 +1,6 @@
 ---
 type: experiment
-status: edge-confirmed
+status: rejected
 tags: [trend-following, daily, breakout, walk-forward, multi-mercato]
 updated: 2026-07-07
 links: ["[[donchian]]"]
@@ -34,8 +34,11 @@ per mercato. **Fonte:** `raw/exp_2026-07-07_donchian_daily.json`.
 **5/8 mercati OOS>1**, OOS medio 1,83. I trenders forti reggono; non crolla come i
 livelli di volume (che erano 3/4 overfitting).
 
-## Conclusione + gate
-**`edge-confirmed`** a livello di paniere. Primo edge del progetto a superare il
-walk-forward. Cautele: modesto (medie OOS gonfiate da oro/JPY), alcuni mercati
-falliscono (DAX/GBP/EUR), va tradato diversificato. **Prossimo: paper trading su
-demo** prima del live (serve attivare l'IB Gateway).
+## Conclusione + gate → CORRETTA in `rejected`
+Emesso inizialmente `edge-confirmed`, **ritrattato lo stesso giorno** dopo il test
+onesto (vedi `raw/exp_2026-07-07_donchian_portfolio.json` e [[donchian]]): con paniere
+ampliato a **14 mercati**, parametro fisso ed equal-weight, il **portafoglio è PIATTO**
+(CAGR ~0%, Sharpe ~0 su tutti i canali). L'entusiasmo si reggeva su un sottoinsieme
+favorevole + walk-forward con media OOS gonfiata da 2 outlier (oro, JPY) + ottimizzazione
+per-mercato. Netto: ~metà mercati positivi, ~metà negativi → zero. Verdetto: **rejected**
+su questi dati (2011-26, drought del trend-following). Lezione conservata in [[donchian]].
