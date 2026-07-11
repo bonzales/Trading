@@ -6,6 +6,7 @@
 ## Strategie
 | Pagina           | Status         | Sintesi                                       |
 |------------------|----------------|-----------------------------------------------|
+| [[rsi2_meanrev]] | edge-confirmed | Compra-il-ribasso RSI2 sugli indici. 5/5 positivi, 27/27 param, OOS 1,43→1,77. Primo edge robusto. → paper. |
 | [[donchian]]     | rejected       | Trend-following daily. Su paniere ampio (14 mkt, param fisso) è PIATTO. Edge-confirmed iniziale ritrattato. |
 | [[pullback]]     | testing        | Kraken: pareggio. EUR_USD H1: no edge (PF 0.951). |
 | [[dax_open_volume]] | rejected    | Scalping apertura indici (volume multi-day). Test fedele 4 indici: US500 perde su 356 trade → no edge meccanico dopo costi. |
@@ -30,11 +31,14 @@
 | [[exp_2026-07-07_vol_levels_H1]] | 2026-07-07 | H1: costi non fatali; NAS +119% ma è beta (sottoperforma buy&hold), altri 3 pari/neg. |
 | [[exp_2026-07-07_vol_levels_multiTF]] | 2026-07-07 | `rejected`: 24 test multi-TF + walk-forward; tutto ~pareggio, 3/4 overfitting. |
 | [[exp_2026-07-07_donchian_daily]] | 2026-07-07 | `rejected` (era edge-confirmed, ritrattato): paniere 14mkt piatto, CAGR ~0%. |
+| [[exp_2026-07-08_rsi2_meanrev]] | 2026-07-08 | **edge-confirmed**: compra-il-ribasso indici; 5/5, 27/27 param, OOS migliora. |
 
 ---
-**Stato del progetto:** nessun edge confermato al momento. `donchian` sembrava il
-primo (walk-forward OK) ma il test onesto su paniere ampio l'ha **ritrattato** (piatto,
-CAGR ~0% nel drought 2011-26). La saga scalping-volumi DAX è chiusa (rejected). Lezione
-chiave conservata: diffidare di walk-forward con OOS trainato da outlier; validare col
-**portafoglio intero a parametro fisso**. Broker dati = Dukascopy; esecuzione = IBKR.
-Prossimo: nuova ipotesi (o costruzione TF vol-targeted / periodo più lungo).
+**Stato del progetto:** **primo edge-confirmed robusto** → [[rsi2_meanrev]]
+(compra-il-ribasso sugli indici), che passa TUTTI i test anti-overfitting falliti da
+donchian (5/5 mercati, 27/27 param, OOS che migliora). Rigettati con rigore: scalping-
+volumi DAX ([[dax_open_volume]], [[vol_levels]]) e trend-following daily ([[donchian]],
+piatto nel drought 2011-26). Lezione chiave: validare col **portafoglio intero a
+parametro fisso** + sensibilità parametri, non fidarsi di un walk-forward con OOS da
+outlier. Broker dati = Dukascopy; esecuzione = IBKR. **Prossimo passo: paper trading di
+`rsi2_meanrev` su demo** (attivare IB Gateway).

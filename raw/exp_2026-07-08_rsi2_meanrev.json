@@ -1,0 +1,19 @@
+{
+  "type": "backtest",
+  "strategy": "rsi2_meanrev",
+  "variant": "mean-reversion 'compra il ribasso' RSI2 (Connors) sugli indici, DAILY, ~14y",
+  "regole": "filtro close>SMA200; long se RSI(2)<oversold; esci se RSI>exit_rsi o close>SMA5 o max_hold; stop 3xATR; long-only",
+  "source": "Dukascopy mid", "indici": ["DAX","US500","NAS100","US30","UK100"],
+  "per_mercato_canonico": {
+    "DAX":{"PF":1.19,"win":0.70,"meta":"1.17/1.18"},
+    "US500":{"PF":2.57,"win":0.80,"meta":"2.59/2.55"},
+    "NAS100":{"PF":1.78,"win":0.72,"meta":"1.72/2.36"},
+    "US30":{"PF":1.62,"win":0.74,"meta":"1.99/1.57"},
+    "UK100":{"PF":1.08,"win":0.67,"meta":"1.00/1.28"}
+  },
+  "portafoglio_5_indici": {"trade":741,"anni":13.8,"totale":0.50,"CAGR":0.030,"maxDD":-0.083,"anni_positivi":"10/15",
+    "crash":"2020 -2%, 2022 -1% (filtro 200MA protegge)"},
+  "sensibilita_parametri": {"combinazioni":27,"PF_min":1.38,"PF_mediano":1.54,"PF_max":1.65,"positive":"27/27 (100%)"},
+  "oos_temporale": {"train_primi60%":{"PF":1.43,"win":0.72},"oos_ultimi40%":{"PF":1.77,"win":0.73}},
+  "verdict": "EDGE-CONFIRMED (robusto). Passa TUTTI i test che donchian aveva fallito: 5/5 indici positivi, due meta stabili, portafoglio non-piatto (+50%, CAGR 3%, maxDD -8.3%), regge i crash, 27/27 combinazioni parametri positive, OOS temporale che MIGLIORA (1.43->1.77). Edge modesto ma pulito e complementare al TF (vive nel regime mean-reverting 2011-26). CAUTELE: strategia pubblicata (Connors RSI2) -> possibile affollamento, performance live puo' essere piu' debole; tail risk di un ribasso che non rimbalza (mitigato da filtro 200MA + stop ATR, ma DD futuro puo' superare -8%); modesto (CAGR 3% a 0.7% rischio/trade, scalabile ma anche il DD). Prossimo gate: PAPER trading su demo."
+}
