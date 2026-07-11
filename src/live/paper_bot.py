@@ -28,6 +28,7 @@ import pandas as pd
 from src.adapters.dukascopy.data import DukascopyDataClient
 from src.config import RAW_DIR, ConfigError, load_settings
 from src.live.decision import MRParams, Plan, decide, position_size
+from src.live.notifier import TelegramNotifier, format_action, format_summary
 
 BASKET = ["US500", "NAS100", "US30", "UK100", "DAX"]
 
@@ -89,8 +90,10 @@ def run(dry_run: bool, params: MRParams, instruments: list[str]) -> int:
         execu.connect()
         equity = execu.net_liquidation() or equity
 
+    notifier = TelegramNotifier()
     state = load_state()
     today = datetime.now(timezone.utc).date().isoformat()
+    actions: list[dict] = []
     print(f"=== paper_bot {today} {'(DRY-RUN)' if dry_run else '(LIVE paper)'} | equity {equity:,.0f} ===")
 
     for inst in instruments:
@@ -107,18 +110,26 @@ def run(dry_run: bool, params: MRParams, instruments: list[str]) -> int:
         plan: Plan = decide(bars, has_pos, held, params)
         print(f"  {inst:7} close {plan.close:,.1f} | {plan.action:5} | {plan.reason}")
 
-        if not dry_run and plan.action == "BUY":
+        qty = None
+        if plan.action == "BUY":
             qty = position_size(equity, plan.close, plan.stop_price, POINT_VALUE.get(inst, 1.0), params)
-            if qty > 0:
-                execu.buy_with_stop(inst, qty, plan.stop_price)
-                state[inst] = {"open": True, "entry_date": today, "qty": qty,
-                               "stop": plan.stop_price, "entry": plan.close}
-            else:
-                print(f"  {inst:7} qty calcolata 0 → nessun ordine")
-        elif not dry_run and plan.action == "CLOSE":
+            if not dry_run:
+                if qty > 0:
+                    execu.buy_with_stop(inst, qty, plan.stop_price)
+                    state[inst] = {"open": True, "entry_date": today, "qty": qty,
+                                   "stop": plan.stop_price, "entry": plan.close}
+                else:
+                    print(f"  {inst:7} qty calcolata 0 → nessun ordine")
+        elif plan.action == "CLOSE" and not dry_run:
             execu.close(inst)
             state.pop(inst, None)
 
+        # notifica Telegram per ogni operazione (BUY/CLOSE), anche in prova (taggata)
+        if plan.action in ("BUY", "CLOSE"):
+            notifier.send(format_action(inst, plan.action, plan.reason, plan.close,
+                                        plan.stop_price, qty, dry_run))
+
+        actions.append({"instrument": inst, "action": plan.action, "close": plan.close})
         log_row({"date": today, "instrument": inst, "action": plan.action,
                  "reason": plan.reason, "close": plan.close, "atr": plan.atr,
                  "stop": plan.stop_price, "dry_run": dry_run})
@@ -126,6 +137,10 @@ def run(dry_run: bool, params: MRParams, instruments: list[str]) -> int:
     if not dry_run:
         save_state(state)
         execu.disconnect()
+
+    notifier.send(format_summary(today, actions, equity, dry_run))
+    if notifier.enabled:
+        print("Riepilogo inviato su Telegram.")
     print("Fatto.")
     return 0
 

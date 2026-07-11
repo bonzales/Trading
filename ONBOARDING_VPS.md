@@ -73,6 +73,24 @@ proceda da solo. Questo si imposta nella **configurazione**, non a parole. Fai c
 Se sul VPS è installato il set di skill **"superpowers"** (o altri plugin Claude Code),
 usali pure quando utili. Non sono necessari per il compito, ma se ci sono sfruttali.
 
+## 6-bis. Notifiche Telegram del bot (già pronte nel codice)
+Il bot manda un avviso Telegram a ogni operazione (BUY/CLOSE) + un riepilogo giornaliero.
+Si attiva mettendo in `.env` (git-ignored):
+- `TELEGRAM_BOT_TOKEN` (crealo con @BotFather)
+- `TELEGRAM_CHAT_ID` (usa @userinfobot per trovarlo)
+Se vuoti → nessuna notifica, il bot funziona lo stesso. Puoi provarle subito con
+`--dry-run` (i messaggi arrivano taggati [PROVA]).
+
+## 6-ter. (Visione) diventare l'agente personale "jarvis"
+L'utente vuole evolvere questa istanza VPS in un **assistente personale (jarvis)** che
+gestisce TUTTA la VPS via Telegram, con memoria e contesto su di lui. Esiste uno
+scaffold dedicato (`jarvis-assistant`, container Docker) con il suo `CLAUDE_INSTALL.md`
+auto-eseguibile. Quando l'utente ti fornisce quello scaffold: **segui il suo
+CLAUDE_INSTALL.md** (ti porrà ~10 domande su di lui, configura Telegram, memoria, cron).
+Regola d'oro nel farlo: **Trading e gli altri progetti restano isolati** (sezione 4) —
+jarvis li ORCHESTRA, non li mescola. Il bot di trading resta in `~/Trading` col suo venv
+e i suoi servizi; jarvis al massimo lo lancia e ne riceve le notifiche Telegram.
+
 ## 7. Il compito operativo di oggi
 Segui **`deploy/SETUP_VPS.md`**: `sudo bash deploy/setup_vps.sh` → compila le credenziali
 paper in `/opt/ibc/config/config.ini` e `.env` → avvia `ib-gateway` → verifica con
