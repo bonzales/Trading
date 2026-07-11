@@ -1,0 +1,8 @@
+{
+  "type": "backtest", "strategy": "donchian",
+  "variant": "trend-following daily, 9 mercati forex/metalli, 2003-2026, split per ERA",
+  "domanda": "il TF era piatto per colpa del decennio 2011-26 o per assenza di edge?",
+  "channel20": {"2003-2010": {"positivi":"6/9","PF_mediano":1.09}, "2011-2026": {"positivi":"3/9","PF_mediano":0.94}},
+  "channel55": {"2003-2010": {"positivi":"5/9","PF_mediano":1.00}, "2011-2026": {"positivi":"4/9","PF_mediano":0.94}},
+  "verdict": "Drought REALE ma PARZIALE: il TF era modestamente migliore nel 2003-2010 (6/9 positivi, PF mediano 1.09) che nel 2011-26 (3-4/9, 0.94). Spiega perche' il portafoglio 2011-26 era piatto. MA anche nell'era buona il TF su forex/metalli e' DEBOLE (PF mediano ~1.0-1.1), campione rumoroso (47-71 trade/mercato pre-2011, no indici pre-2012). Non riscatta donchian a edge-confirmed. Conferma: su questi dati/strumenti l'edge e' il MEAN-REVERSION (rsi2_meanrev, robusto), non il trend-following. Un TF vero richiederebbe futures diversificati + vol-targeting + storia piu' lunga: fuori dai nostri dati attuali."
+}

@@ -42,6 +42,16 @@ Contesto (non una scusa): il 2011–2026 è un **drought documentato per il tren
 c'è edge**. Riaprire solo con costruzione diversa (vol-targeting, più mercati, storia
 pre-2011) e sempre validato OOS — non selezionando i mercati vincenti col senno di poi.
 
+## Verifica storia lunga (2003-2026): drought reale ma parziale
+Fonte: `raw/exp_2026-07-08_donchian_eras.json`. Su 9 mercati forex/metalli, split per era:
+- **2003-2010** (col boom TF del 2008): 6/9 positivi, PF mediano **1,09**.
+- **2011-2026** (drought): 3-4/9 positivi, PF mediano **0,94**.
+Il TF era *modestamente* migliore prima → spiega il piatto recente. Ma anche nell'era
+buona è **debole** (PF mediano ~1,0-1,1) su forex/metalli. Non riscatta la strategia:
+un TF vero richiederebbe futures diversificati + vol-targeting + storia più lunga (fuori
+dai dati attuali). Su questi dati **l'edge è il mean-reversion** ([[rsi2_meanrev]]), non
+il trend-following.
+
 ## Lezione METODOLOGICA (importante)
 Un walk-forward con media OOS alta ma **trainata da 1-2 outlier** non è un edge. La
 prova pulita è il **portafoglio intero a parametro fisso**. Applicare la stessa severità
