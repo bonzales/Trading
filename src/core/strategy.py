@@ -216,12 +216,70 @@ class DonchianStrategy:
         return Signal(FLAT, price, atr)
 
 
+@dataclass
+class IchimokuStrategy:
+    """Ichimoku Kinko Hyo — regole canoniche (trend-following).
+
+    Linee: Tenkan (9), Kijun (26), Senkou A = (Tenkan+Kijun)/2 proiettata +26,
+    Senkou B (52) proiettata +26, Chikou = close spostata −26. Ingresso "a tre
+    conferme": prezzo dal lato giusto della nuvola (Kumo) + incrocio Tenkan/Kijun
+    + conferma Chikou (close vs close di 26 barre fa). Uscita: stop/trailing ATR
+    dell'engine. Nessun lookahead: tutte le linee usano dati ≤ i.
+    """
+
+    name: str = "ichimoku"
+    tenkan: int = 9
+    kijun: int = 26
+    senkou_b: int = 52
+    shift: int = 26
+    atr_period: int = 14
+
+    @staticmethod
+    def _mid(df: pd.DataFrame, n: int) -> pd.Series:
+        return (df["high"].rolling(n).max() + df["low"].rolling(n).min()) / 2.0
+
+    def prepare(self, df: pd.DataFrame) -> pd.DataFrame:
+        out = df.copy()
+        tk = self._mid(out, self.tenkan)
+        kj = self._mid(out, self.kijun)
+        out["tenkan"] = tk
+        out["kijun"] = kj
+        # nuvola: medie proiettate 26 avanti → al bar i usano dati di i-26 (no lookahead)
+        out["ssa"] = ((tk + kj) / 2.0).shift(self.shift)
+        out["ssb"] = self._mid(out, self.senkou_b).shift(self.shift)
+        out["cloud_top"] = out[["ssa", "ssb"]].max(axis=1)
+        out["cloud_bot"] = out[["ssa", "ssb"]].min(axis=1)
+        out["close_lag"] = out["close"].shift(self.shift)  # per la conferma Chikou
+        out["atr"] = ind.atr(out, self.atr_period)
+        return out
+
+    @property
+    def warmup(self) -> int:
+        return self.senkou_b + self.shift + self.atr_period + 1
+
+    def signal(self, df: pd.DataFrame, i: int) -> Signal:
+        row = df.iloc[i]
+        price, atr = float(row["close"]), float(row["atr"])
+        if pd.isna(atr) or atr <= 0 or pd.isna(row["cloud_top"]) or pd.isna(row["close_lag"]):
+            return Signal(FLAT, price, 0.0)
+        long_ok = (price > row["cloud_top"] and row["tenkan"] > row["kijun"]
+                   and price > row["close_lag"])
+        short_ok = (price < row["cloud_bot"] and row["tenkan"] < row["kijun"]
+                    and price < row["close_lag"])
+        if long_ok:
+            return Signal(LONG, price, atr)
+        if short_ok:
+            return Signal(SHORT, price, atr)
+        return Signal(FLAT, price, atr)
+
+
 def make_strategy(name: str, **params) -> Strategy:
     """Factory: traduce nome + parametri in un'istanza di strategia."""
     registry = {
         "pullback": PullbackStrategy,
         "vol_levels": VolumeLevelStrategy,
         "donchian": DonchianStrategy,
+        "ichimoku": IchimokuStrategy,
     }
     if name not in registry:
         raise ValueError(

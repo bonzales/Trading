@@ -1,0 +1,11 @@
+{
+  "type": "backtest", "strategy": "ichimoku",
+  "variant": "regole canoniche (Tenkan9/Kijun26/SenkouB52/shift26/Chikou), daily, 14 mercati ~15y, uscita stop+trailing ATR",
+  "regole_ingresso": "prezzo sopra(sotto) la nuvola + Tenkan>Kijun (o <) + close > (<) close di 26 barre fa",
+  "risultati": {
+    "positivi": "5/14", "PF_mediano": 0.94, "meta_positive": "6/14 e 5/14",
+    "vincitori": {"XAU_USD":1.41,"NAS100":1.19,"US500":1.11,"USD_JPY":1.10,"XAG_USD":1.05},
+    "perdenti_chiave": {"UK100":0.62,"DAX":0.72,"NZD_USD":0.82,"forex_medio":"0.92-0.94"}
+  },
+  "verdict": "REJECTED. Ichimoku e' trend-following: stessa firma di donchian su questi dati. 5/14 positivi, PF mediano 0.94, due meta instabili; guadagna solo dove il mercato trenda (oro/NASDAQ/JPY), perde sul resto. Non aggiunge nulla al TF gia' rigettato. L'articolo (investire.biz) e' divulgativo/promo corso, senza regole operative: 'funziona molto bene' era affermazione, smentita dal backtest. Edge del progetto resta il mean-reversion."
+}

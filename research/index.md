@@ -13,7 +13,7 @@
 | [[vol_levels]]      | rejected    | Livelli volume su TF alto. 24 test (rottura+rimbalzo × M15/H1/H4 × 4 indici) + walk-forward: no edge (3/4 overfitting). |
 | [[breakout]]     | rejected       | Forte perdita su Kraken (12 mesi reali).      |
 | [[meanrev]]      | rejected       | Perdita su Kraken.                             |
-| [[ichimoku]]     | rejected       | Forte perdita su Kraken.                       |
+| [[ichimoku]]     | rejected       | Kraken: perdita. Daily 14 mkt: trend-following, 5/14 pos, PF mediano 0,94. |
 
 ## Strumenti
 | Pagina       | Status   | Note                                              |
@@ -32,6 +32,7 @@
 | [[exp_2026-07-07_vol_levels_multiTF]] | 2026-07-07 | `rejected`: 24 test multi-TF + walk-forward; tutto ~pareggio, 3/4 overfitting. |
 | [[exp_2026-07-07_donchian_daily]] | 2026-07-07 | `rejected` (era edge-confirmed, ritrattato): paniere 14mkt piatto, CAGR ~0%. |
 | [[exp_2026-07-08_rsi2_meanrev]] | 2026-07-08 | **edge-confirmed**: compra-il-ribasso indici; 5/5, 27/27 param, OOS migliora. |
+| [[exp_2026-07-08_ichimoku_daily]] | 2026-07-08 | `rejected`: trend-following travestito, 5/14 pos, PF mediano 0,94 (come donchian). |
 
 ---
 **Stato del progetto:** **primo edge-confirmed robusto** → [[rsi2_meanrev]]
