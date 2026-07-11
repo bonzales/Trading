@@ -32,8 +32,13 @@ from src.live.notifier import TelegramNotifier, format_action, format_summary
 
 BASKET = ["US500", "NAS100", "US30", "UK100", "DAX"]
 
-# Valore di 1 punto indice per contratto CFD. PLACEHOLDER: da confermare col broker
-# (paper). Un valore errato sbaglia solo la GRANDEZZA della posizione, non il segnale.
+# Valore di 1 punto indice per contratto CFD. VERIFICATO dal vivo sul conto paper
+# (2026-07-11) via reqContractDetails sui 5 CFD (IBUS500/IBUST100/IBUS30/IBGB100/IBDE40):
+# il campo `multiplier` di IBKR è vuoto per tutti -> point value = 1.0 (1 CFD = 1 unità di
+# valuta del contratto per punto). Un valore errato sbaglia solo la GRANDEZZA della
+# posizione, non il segnale. NB: il point value è il moltiplicatore del contratto, non la
+# conversione FX (US*/UK100 fanno P&L in USD/GBP, conto in EUR): l'eventuale fattore di
+# cambio è un tema separato, non incluso qui.
 POINT_VALUE = {"US500": 1.0, "NAS100": 1.0, "US30": 1.0, "UK100": 1.0, "DAX": 1.0}
 
 STATE_FILE = RAW_DIR / "live_state.json"
