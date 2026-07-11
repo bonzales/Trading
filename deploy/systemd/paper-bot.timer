@@ -1,0 +1,10 @@
+[Unit]
+Description=Esegue il bot mean-reversion ogni giorno dopo la chiusura cash
+
+[Timer]
+# 22:30 Europe/Berlin: dopo la chiusura degli indici USA (22:00). Nei giorni feriali.
+OnCalendar=Mon..Fri 22:30 Europe/Berlin
+Persistent=true
+
+[Install]
+WantedBy=timers.target

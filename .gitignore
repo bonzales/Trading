@@ -7,3 +7,9 @@ __pycache__/
 *.pyc
 raw/cache/
 *.log
+
+# runtime del bot live (stato/registro, non evidenza di ricerca)
+raw/live_state.json
+raw/live_log.csv
+# eventuale config IBC compilata in locale
+/opt/ibc/**

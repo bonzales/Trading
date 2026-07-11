@@ -1,0 +1,16 @@
+[Unit]
+Description=IB Gateway (paper) headless via IBC
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__USER__
+Environment=DISPLAY=:1
+ExecStart=/usr/bin/env bash __REPO__/deploy/run_gateway.sh
+Restart=always
+RestartSec=30
+# il Gateway a volte va riavviato ogni notte per il re-login: opzionale via timer
+
+[Install]
+WantedBy=multi-user.target
