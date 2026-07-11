@@ -48,6 +48,8 @@ class MRTrade:
     bars: int
     reason: str
     exit_i: int = -1
+    r_points: float = 0.0
+    entry_i: int = -1
 
 
 def backtest(df: pd.DataFrame, cfg: MeanRevConfig | None = None) -> dict:
@@ -88,7 +90,8 @@ def backtest(df: pd.DataFrame, cfg: MeanRevConfig | None = None) -> dict:
                 exit_price, j, reason = close[n - 1] - half, n - 1, "end"
             pnl_pts = exit_price - entry
             trades.append(MRTrade(entry, exit_price, pnl_pts / r_pts if r_pts > 0 else 0.0,
-                                  pnl_pts / entry, j - i, reason, exit_i=j))
+                                  pnl_pts / entry, j - i, reason, exit_i=j,
+                                  r_points=r_pts, entry_i=i))
             i = j + 1
         else:
             i += 1
