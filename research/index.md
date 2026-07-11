@@ -6,7 +6,7 @@
 ## Strategie
 | Pagina           | Status         | Sintesi                                       |
 |------------------|----------------|-----------------------------------------------|
-| [[rsi2_meanrev]] | edge-confirmed | Compra-il-ribasso RSI2 sugli indici. 5/5 positivi, 27/27 param, OOS 1,43→1,77. Primo edge robusto. → paper. |
+| [[rsi2_meanrev]] | paper          | Compra-il-ribasso RSI2 sugli indici. IN PAPER dal 2026-07-11 (VPS, timer giornaliero, Telegram). |
 | [[donchian]]     | rejected       | Trend-following daily. Su paniere ampio (14 mkt, param fisso) è PIATTO. Edge-confirmed iniziale ritrattato. |
 | [[pullback]]     | testing        | Kraken: pareggio. EUR_USD H1: no edge (PF 0.951). |
 | [[dax_open_volume]] | rejected    | Scalping apertura indici (volume multi-day). Test fedele 4 indici: US500 perde su 356 trade → no edge meccanico dopo costi. |

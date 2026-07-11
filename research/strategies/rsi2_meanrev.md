@@ -1,8 +1,8 @@
 ---
 type: strategy
-status: edge-confirmed
+status: paper
 tags: [mean-reversion, indici, daily, rsi2, connors]
-updated: 2026-07-08
+updated: 2026-07-11
 links: ["[[exp_2026-07-08_rsi2_meanrev]]", "[[donchian]]", "[[meanrev]]", "[[US500]]"]
 ---
 # rsi2_meanrev (compra il ribasso sugli indici)
@@ -43,9 +43,18 @@ load-bearing:**
 - **Tail risk**: un ribasso che parte da sopra la 200MA e non rimbalza fa male; il DD
   futuro può superare −8%. Mitigato (filtro + stop) ma non azzerato.
 
-## Prossimo passo (gate §5)
-**Paper trading su demo** (settimane). È il primo candidato che merita davvero il paper
-→ ora ha senso attivare l'IB Gateway.
+## Stato: IN PAPER (dal 2026-07-11)
+Bot in esecuzione automatica sul VPS (`src/live/paper_bot.py`), timer giornaliero 22:30
+Europe/Berlin, conto **paper IBKR**, notifiche Telegram a ogni operazione + riepilogo.
+Fase di validazione: confrontare i trade REALI con le attese del backtest (win ~70%,
+PF portafoglio ~1.5, ~4-5 trade/mese, drawdown atteso 10-25% secondo il rischio).
+Promozione a `live` SOLO se il paper replica il backtest per settimane. Registro
+operazioni in `raw/live_log.csv`.
+
+### Da verificare durante il paper
+- **Fill vs prezzo atteso** (slippage nel comprare la debolezza).
+- **Sizing** corretto (point_value CFD calibrato dai contratti IBKR).
+- Il **riepilogo Telegram arriva ogni sera** (se manca → Gateway giù, va controllato).
 
 ## Note
 Diverso dalla [[meanrev]] ereditata da Kraken (crypto, rigettata): altro mercato, altro
