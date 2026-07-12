@@ -8,16 +8,17 @@ export DISPLAY=:1
 pgrep -f "Xvfb :1" >/dev/null || (Xvfb :1 -screen 0 1024x768x24 >/tmp/xvfb.log 2>&1 &)
 sleep 3
 
-# rileva la home del Gateway (l'installer usa ~/Jts o ~/ibgateway a seconda delle versioni)
-GW_DIR=""
-for d in "$HOME/Jts" "$HOME/ibgateway" "/root/Jts" "/opt/ibgateway"; do
-  [ -d "$d" ] && GW_DIR="$d" && break
+# IBC (gateway) si aspetta il layout:  <tws-path>/ibgateway/<versione>/jars
+# Cerchiamo la base che contiene ibgateway/<num>/jars e ne ricaviamo la versione.
+GW_DIR=""; TWS_VERSION=""
+for base in "$HOME/Jts" "/root/Jts" "$HOME/ibgateway" "/opt/ibgateway"; do
+  [ -d "$base/ibgateway" ] || continue
+  v="$(ls "$base/ibgateway" 2>/dev/null | grep -oE '^[0-9]+$' | sort -rn | head -1 || true)"
+  if [ -n "$v" ] && [ -d "$base/ibgateway/$v/jars" ]; then
+    GW_DIR="$base"; TWS_VERSION="$v"; break
+  fi
 done
-[ -z "$GW_DIR" ] && { echo "IB Gateway non trovato (cerco in ~/Jts, ~/ibgateway)"; exit 1; }
-
-# versione = prima cartella numerica dentro la home del Gateway (es. 1030)
-TWS_VERSION="$(ls "$GW_DIR" | grep -oE '^[0-9]+$' | sort -rn | head -1 || true)"
-[ -z "$TWS_VERSION" ] && TWS_VERSION="1030"
+[ -z "$GW_DIR" ] && { echo "IB Gateway non trovato (cerco <base>/ibgateway/<versione>/jars in ~/Jts, /root/Jts, ~/ibgateway, /opt/ibgateway)"; exit 1; }
 
 echo "Gateway dir=$GW_DIR versione=$TWS_VERSION → avvio IBC (paper)"
 exec /opt/ibc/scripts/ibcstart.sh "$TWS_VERSION" --gateway \

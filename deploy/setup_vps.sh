@@ -19,14 +19,27 @@ INSTALL_USER="${SUDO_USER:-$USER}"
 
 echo "== 1/6 pacchetti di sistema =="
 apt-get update -y
-apt-get install -y openjdk-17-jre-headless xvfb unzip curl git python3-venv python3-pip
+apt-get install -y openjdk-17-jre-headless xvfb unzip curl git python3-venv python3-pip \
+  libxtst6 libxrender1 libxi6 libxext6 libfreetype6 fontconfig
+# libXtst/libXrender/libXi: la JRE bundled del Gateway le richiede per l'AWT toolkit,
+# altrimenti IBC crasha all'avvio con UnsatisfiedLinkError (libXtst.so.6 mancante).
 
 echo "== 2/6 IB Gateway =="
-if [ ! -d "$HOME/Jts/ibgateway" ] && [ ! -d "/root/Jts" ]; then
+if [ ! -d "$HOME/Jts/ibgateway" ]; then
   curl -fsSL "$GW_URL" -o "/tmp/${GW_INSTALLER}"
   chmod +x "/tmp/${GW_INSTALLER}"
-  # installazione non interattiva nella home di default (~/Jts)
-  yes "" | "/tmp/${GW_INSTALLER}" -q -dir "$HOME/ibgateway" || "/tmp/${GW_INSTALLER}"
+  # L'installer '-q' (non interattivo) crea un layout "flat": jars in <dir>/jars,
+  # senza sottocartella di versione. NB: niente 'yes ""' in pipe, con -q non serve
+  # e il SIGPIPE di 'yes' farebbe fallire la pipeline sotto 'set -o pipefail'.
+  GW_TMP="$(mktemp -d)"
+  "/tmp/${GW_INSTALLER}" -q -dir "$GW_TMP"
+  # IBC (gateway) si aspetta invece:  ~/Jts/ibgateway/<versione>/{jars,ibgateway.vmoptions,.install4j}
+  # Ricava la versione major (es. 1045) dal jar principale e riorganizza di conseguenza.
+  GW_VER="$(ls "$GW_TMP"/jars/twslaunch-[0-9]*.jar 2>/dev/null | head -1 | sed -E 's/.*twslaunch-([0-9]+)\.jar/\1/')"
+  [ -z "$GW_VER" ] && { echo "Impossibile determinare la versione del Gateway in $GW_TMP"; exit 1; }
+  mkdir -p "$HOME/Jts/ibgateway"
+  mv "$GW_TMP" "$HOME/Jts/ibgateway/$GW_VER"
+  echo "  -> IB Gateway $GW_VER installato in $HOME/Jts/ibgateway/$GW_VER"
 fi
 
 echo "== 3/6 IBC (login automatico) =="
