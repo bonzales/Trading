@@ -6,6 +6,8 @@ Description=Ricerca notturna — sweep dell'universo con gate anti-overfitting (
 Type=oneshot
 User=__USER__
 WorkingDirectory=__REPO__
-# Sweep daily + H4. Manda un riepilogo Telegram corto (solo novità).
+# Sweep daily + intraday (H4, H1). Manda un riepilogo Telegram corto (solo novità).
 # È Python puro: NON usa Claude, consumo token ZERO. Report in raw/research/.
-ExecStart=__REPO__/.venv/bin/python -m src.research.nightly --tf D H4
+# Nota: l'intraday richiede i dati M1 (deploy/download_universe.sh --m1). L'M1 di
+# Dukascopy copre ~3 anni: storia corta -> la watchlist forward è ancora più importante.
+ExecStart=__REPO__/.venv/bin/python -m src.research.nightly --tf D H4 H1
