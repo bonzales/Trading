@@ -40,6 +40,7 @@
 | [[exp_2026-07-12_riskparity]] | 2026-07-12 | **risk-parity** sul multi-edge: Sharpe 0,55→0,74 e maxDD −12%→−8% insieme; robusto su finestre 40-180g. Pesatura di default. |
 | [[exp_2026-07-12_fx_meanrev_tradelevel]] | 2026-07-12 | **trade-level fx_meanrev**: DECLASSA a `testing`. 6/7 ma marginale (PF med 1,07), Sharpe 0,31 (vs 0,57), muore a 2× costi, swap non modellato. Non standalone. |
 | [[exp_2026-07-12_gold_trend]] | 2026-07-12 | **edge-confirmed**: oro trend solo-long (Donchian). PF ~2, Sharpe 0,65, maxDD −8%, sensibilità 6/6, OOS migliora. Argento non conferma (gold-specifico). |
+| [[exp_2026-07-12_intraday_indices]] | 2026-07-12 | `rejected`: intraday indici H1 senza edge (MR 0/27 param, breakout PF 0,99). Turnover alto ma costi fatali. Linea chiusa. |
 
 ---
 **Stato del progetto:** **DUE edge robusti e confermati al trade-level**:
