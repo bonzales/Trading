@@ -20,6 +20,51 @@ from pathlib import Path
 
 from src.research.engine import Result, run_sweep, summarize, to_rows
 
+# Edge daily già noti/documentati (symbol, template): servono a calcolare le NOVITÀ,
+# così il messaggio Telegram del mattino segnala solo ciò che non abbiamo già studiato.
+# Da aggiornare quando un nuovo edge viene promosso nella wiki.
+KNOWN_D: set[tuple[str, str]] = {
+    ("US500", "mr_indices"), ("NAS100", "mr_indices"), ("US30", "mr_indices"), ("UK100", "mr_indices"),
+    ("XAU_USD", "trend_long"), ("XAG_USD", "trend_long"), ("WTI", "trend_long"),
+    ("BRENT", "trend_long"), ("COPPER", "trend_long"), ("NAS100", "trend_long"),
+    ("DAX", "trend_long"), ("US500", "trend_long"), ("UK100", "trend_long"),
+    ("XAU_USD", "trend_ls"), ("WTI", "trend_ls"), ("BRENT", "trend_ls"),
+    ("EUR_USD", "mr_fx"), ("GBP_USD", "mr_fx"), ("USD_CHF", "mr_fx"),
+    ("USD_CAD", "mr_fx"), ("NZD_USD", "mr_fx"), ("BRENT", "mr_fx"),
+}
+
+
+def _novelties(all_results: dict[str, list[Result]]) -> list[Result]:
+    """Confermate che NON conosciamo già: nuove a daily, o qualsiasi su TF intraday."""
+    out = []
+    for tf, results in all_results.items():
+        for r in results:
+            if r.verdict != "confirmed":
+                continue
+            if tf == "D" and (r.symbol, r.template) in KNOWN_D:
+                continue
+            out.append(r)
+    return out
+
+
+def telegram_summary(all_results: dict[str, list[Result]], summary_all: dict) -> str:
+    """Messaggio Telegram CORTO (plain-text): solo conteggi + novità. Niente markdown."""
+    today = datetime.now(timezone.utc).date().isoformat()
+    tot = sum(s["n_combos"] for s in summary_all.values())
+    conf = sum(s["confirmed"] for s in summary_all.values())
+    tfs = ",".join(all_results.keys())
+    lines = [f"🔬 Ricerca notturna {today}", f"TF {tfs} · {tot} combo · {conf} confermate"]
+    nov = _novelties(all_results)
+    if not nov:
+        lines.append("✅ Nessuna novità rispetto agli edge noti.")
+    else:
+        lines.append(f"🆕 Novità ({len(nov)}):")
+        for r in nov[:8]:
+            lines.append(f"• {r.symbol} {r.template} {r.timeframe} (PF {r.pf_full:.2f}, OOS {r.pf_oos:.2f})")
+        if len(nov) > 8:
+            lines.append(f"…e altre {len(nov) - 8}. Vedi report.")
+    return "\n".join(lines)
+
 
 def _markdown(all_results: dict[str, list[Result]], summary_all: dict) -> str:
     today = datetime.now(timezone.utc).date().isoformat()
@@ -58,7 +103,17 @@ def _markdown(all_results: dict[str, list[Result]], summary_all: dict) -> str:
     return "\n".join(lines)
 
 
-def run(timeframes: list[str], out_dir: str, cache_dir: str = "raw/cache") -> Path:
+def _load_env() -> None:
+    """Carica il .env del repo in os.environ (per TELEGRAM_*), se python-dotenv c'è."""
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        return
+    load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+
+
+def run(timeframes: list[str], out_dir: str, cache_dir: str = "raw/cache",
+        no_telegram: bool = False) -> Path:
     today = datetime.now(timezone.utc).date().isoformat()
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -87,6 +142,15 @@ def run(timeframes: list[str], out_dir: str, cache_dir: str = "raw/cache") -> Pa
     with log_stub.open("a") as fh:
         fh.write(log_line)
 
+    # riepilogo Telegram corto (solo novità) — no-op se Telegram non configurato
+    if not no_telegram:
+        _load_env()  # porta TELEGRAM_* in os.environ (come fa load_settings del bot)
+        from src.live.notifier import TelegramNotifier
+        notifier = TelegramNotifier()
+        if notifier.enabled:
+            notifier.send(telegram_summary(all_results, summary_all))
+            print("Riepilogo inviato su Telegram.")
+
     print(f"Report scritto: {md_path}")
     print(f"  {tot} combinazioni, {conf} confermate.")
     return md_path
@@ -97,8 +161,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--tf", nargs="+", default=["D"], help="timeframe (default: D)")
     p.add_argument("--out", default="raw/research", help="cartella output report")
     p.add_argument("--cache", default="raw/cache", help="cartella dati")
+    p.add_argument("--no-telegram", action="store_true", help="non inviare il riepilogo Telegram")
     args = p.parse_args(argv)
-    run(args.tf, args.out, args.cache)
+    run(args.tf, args.out, args.cache, no_telegram=args.no_telegram)
     return 0
 
 

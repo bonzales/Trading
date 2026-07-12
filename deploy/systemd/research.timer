@@ -1,0 +1,11 @@
+[Unit]
+Description=Lancia la ricerca notturna ogni mattina presto (report Telegram al risveglio)
+
+[Timer]
+# 06:00 Europe/Berlin: i dati del giorno di borsa precedente sono pronti, il report
+# Telegram ti aspetta al risveglio. Persistent=true: se il VPS era spento, recupera.
+OnCalendar=Tue..Sat 06:00 Europe/Berlin
+Persistent=true
+
+[Install]
+WantedBy=timers.target
