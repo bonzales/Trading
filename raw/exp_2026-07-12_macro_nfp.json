@@ -1,0 +1,19 @@
+{
+  "experiment": "eventi macro (NFP) — effetto sulla volatilità degli strumenti",
+  "date": "2026-07-12",
+  "description": "Studio dell'effetto delle buste paga USA (NFP = primo venerdi del mese, derivabile senza dati esterni) sulla volatilita e sul rendimento giornalieri, su 14 strumenti. Obiettivo: usare gli eventi macro come FILTRO DI RISCHIO (non come predittore di direzione). Codice: src/adapters/macro/.",
+  "vol_ratio_giorni_NFP_vs_normali": {
+    "US500": 1.19, "NAS100": 1.22, "US30": 1.15, "DAX": 1.14, "UK100": 1.16,
+    "EUR_USD": 1.32, "GBP_USD": 1.16, "USD_JPY": 1.75, "AUD_USD": 1.23,
+    "XAU_USD": 1.27, "XAG_USD": 1.41, "WTI": 1.15, "BRENT": 1.17, "COPPER": 1.48
+  },
+  "strumenti_con_vol_elevata": "14/14 (tutti). Rapporto sempre > 1.14x, fino a 1.75x (USD_JPY).",
+  "direzione": "NON predicibile: il rendimento MEDIO nei giorni NFP e' rumoroso (es. US500 +0,08% vs +0,04%, EUR ~0). Prevedere la DIREZIONE richiederebbe il dato di CONSENSO (actual vs atteso), che non abbiamo gratis.",
+  "verdetto": "L'effetto ROBUSTO e universale degli eventi macro e' sulla VOLATILITA' (i giorni ad alto impatto sono nettamente piu' volatili su TUTTI gli strumenti USD-esposti). Uso corretto: FILTRO DI RISCHIO -> nei giorni-evento ridurre la size / allargare gli stop / non aprire nuove posizioni. NON un segnale direzionale. Helper: size_multiplier(is_event_day, damp).",
+  "limiti": [
+    "Solo NFP e' derivabile senza dati esterni; FOMC/CPI/BCE richiedono un elenco date (CSV opzionale raw/cache/macro_events.csv), da popolare.",
+    "La DIREZIONE (surprise trading) richiede un dataset di consenso storico: fonte a pagamento/scraping, non ancora disponibile.",
+    "Il valore come filtro va DIMOSTRATO: ridurre size sugli eventi migliora lo Sharpe/drawdown del sistema? Prossimo test."
+  ],
+  "prossimo_passo": "Aggiungere il flag macro come mattoncino del generatore e testare se il filtro di rischio (size ridotta sugli eventi) migliora le metriche degli edge confermati. Popolare macro_events.csv con FOMC/CPI se si vuole estendere oltre l'NFP."
+}

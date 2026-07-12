@@ -18,6 +18,7 @@
 | [[meanrev]]      | rejected       | Perdita su Kraken.                             |
 | [[ichimoku]]     | rejected       | Kraken: perdita. Daily 14 mkt: trend-following, 5/14 pos, PF mediano 0,94. |
 | [[cot_factor]]   | testing        | Posizionamento istituzionale COT (report GIUSTI: Managed Money/Leveraged Funds). Debole ma reale e OOS-solido su ORO (momentum) e WTI (contrarian). Candidato tilt di size, non standalone. |
+| [[macro_filter]] | testing        | Eventi macro (NFP…) come FILTRO DI RISCHIO. Vol +14/+75% nei giorni-evento su 14/14 strumenti. Non direzionale (serve consenso). Riduce size sugli eventi. |
 
 ## Strumenti
 | Pagina       | Status   | Note                                              |
