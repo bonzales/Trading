@@ -1,0 +1,15 @@
+{
+  "type": "backtest", "strategy": "fx_meanrev",
+  "variant": "mean-reversion RSI2 SIMMETRICO (no filtro trend) sui 7 forex major, daily ~23y, return-based",
+  "regole": "long se RSI(2)<oversold, short se RSI(2)>(100-oversold), esci quando RSI torna oltre exit_level; posizione +/-1; costi spread inclusi",
+  "mercati": ["EUR_USD","GBP_USD","USD_JPY","AUD_USD","USD_CHF","USD_CAD","NZD_USD"],
+  "sweep_confronto_daily_sharpe_per_mercato": {
+    "rsi2_mr": {"EUR_USD":0.35,"GBP_USD":0.09,"USD_JPY":0.34,"AUD_USD":0.10,"USD_CHF":0.31,"USD_CAD":0.19,"NZD_USD":0.13,"XAU_USD":-0.29,"XAG_USD":-0.61},
+    "nota": "tutti i 7 FX positivi; oro/argento NEGATIVI sul MR (vogliono trend)"
+  },
+  "portafoglio_7_major": {"sharpe": 0.57, "cagr": 0.012, "maxDD": -0.089, "meta_sharpe": "0.73 / 0.39"},
+  "sensibilita_parametri": {"combinazioni": 12, "sharpe_min": 0.24, "sharpe_mediano": 0.36, "sharpe_max": 0.57, "positivi": "12/12"},
+  "oos_temporale": {"train_60pct_sharpe": 0.51, "oos_40pct_sharpe": 0.68},
+  "oro_lead": {"nota": "XAU positivo su tsmom (+0.32) e ma-cross (+0.36), negativo su MR: l'oro vuole TREND-following, non mean-reversion. Lead separato da approfondire."},
+  "verdict": "EDGE-CONFIRMED (return-based). Secondo edge del progetto, market-neutral, su FX (classe diversa dagli indici -> diversifica). Passa i test che donchian falliva: 7/7 major positivi, 12/12 combinazioni parametri positive, OOS che migliora (0.51->0.68). CAUTELE: Sharpe MODESTO (0.57), CAGR ~1.2% senza leva (FX si opera in leva -> rendimento scala, rischio pure); idea nota (possibile affollamento); validazione a livello di SERIE DI RENDIMENTI, non ancora backtest trade-by-trade con l'engine (prossimo passo). Complementare a rsi2_meanrev (indici). L'oro va in un binario separato (trend-following)."
+}

@@ -7,6 +7,7 @@
 | Pagina           | Status         | Sintesi                                       |
 |------------------|----------------|-----------------------------------------------|
 | [[rsi2_meanrev]] | paper          | Compra-il-ribasso RSI2 sugli indici. IN PAPER dal 2026-07-11 (VPS, timer giornaliero, Telegram). |
+| [[fx_meanrev]]   | edge-confirmed | Mean-reversion RSI2 sui 7 forex major. 7/7 positivi, 12/12 param, OOS 0,51→0,68. 2° edge (decorrelato). |
 | [[donchian]]     | rejected       | Trend-following daily. Su paniere ampio (14 mkt, param fisso) è PIATTO. Edge-confirmed iniziale ritrattato. |
 | [[pullback]]     | testing        | Kraken: pareggio. EUR_USD H1: no edge (PF 0.951). |
 | [[dax_open_volume]] | rejected    | Scalping apertura indici (volume multi-day). Test fedele 4 indici: US500 perde su 356 trade → no edge meccanico dopo costi. |
@@ -33,11 +34,13 @@
 | [[exp_2026-07-07_donchian_daily]] | 2026-07-07 | `rejected` (era edge-confirmed, ritrattato): paniere 14mkt piatto, CAGR ~0%. |
 | [[exp_2026-07-08_rsi2_meanrev]] | 2026-07-08 | **edge-confirmed**: compra-il-ribasso indici; 5/5, 27/27 param, OOS migliora. |
 | [[exp_2026-07-08_ichimoku_daily]] | 2026-07-08 | `rejected`: trend-following travestito, 5/14 pos, PF mediano 0,94 (come donchian). |
+| [[exp_2026-07-11_fx_meanrev]] | 2026-07-11 | **edge-confirmed**: mean-reversion 7 forex major; 7/7, 12/12 param, OOS migliora. Oro→trend (lead). |
 
 ---
-**Stato del progetto:** **primo edge-confirmed robusto** → [[rsi2_meanrev]]
-(compra-il-ribasso sugli indici), che passa TUTTI i test anti-overfitting falliti da
-donchian (5/5 mercati, 27/27 param, OOS che migliora). Rigettati con rigore: scalping-
+**Stato del progetto:** **DUE edge confermati**: [[rsi2_meanrev]] (indici, IN PAPER sul
+VPS) e [[fx_meanrev]] (forex major, decorrelato) — entrambi mean-reversion robusti
+(tutti i mercati positivi, param-insensibili, OOS che regge/migliora). Lead aperto:
+oro→trend-following. Rigettati con rigore: scalping-
 volumi DAX ([[dax_open_volume]], [[vol_levels]]) e trend-following daily ([[donchian]],
 piatto nel drought 2011-26). Lezione chiave: validare col **portafoglio intero a
 parametro fisso** + sensibilità parametri, non fidarsi di un walk-forward con OOS da
