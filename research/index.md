@@ -17,6 +17,7 @@
 | [[breakout]]     | rejected       | Forte perdita su Kraken (12 mesi reali).      |
 | [[meanrev]]      | rejected       | Perdita su Kraken.                             |
 | [[ichimoku]]     | rejected       | Kraken: perdita. Daily 14 mkt: trend-following, 5/14 pos, PF mediano 0,94. |
+| [[cot_factor]]   | testing        | Posizionamento istituzionale COT. NON è edge standalone (rumore a 20gg; a 60gg debole su WTI/EUR/US500). Al più filtro di size sulle commodity. |
 
 ## Strumenti
 | Pagina       | Status   | Note                                              |
@@ -58,5 +59,9 @@ con rigore: scalping-volumi DAX ([[dax_open_volume]], [[vol_levels]]) e trend-fo
 long/short su paniere ampio ([[donchian]], piatto). Lezione chiave: validare col
 **portafoglio a parametro fisso** + sensibilità + **trade-level con costi realistici**
 (ha smascherato fx_meanrev e promosso l'oro). Broker dati = Dukascopy; esecuzione = IBKR.
-**Prossimo passo: paper trading di [[gold_trend]]** come 2° modulo del bot (indici-MR +
-oro-trend, decorrelati).
+Fattore [[cot_factor]] testato: **non è un edge standalone** (rumore a 20gg; debole a 60gg
+su WTI/EUR/US500) → al più filtro di size sulle commodity. **Infrastruttura di ricerca**:
+motore notturno con gate anti-overfitting (`src/research/`), resampler multi-TF
+(`src/adapters/resample.py`), downloader COT (`src/adapters/cot/`). **Prossimo passo:
+accendere le ricerche notturne sul VPS** (scarico M1 universo + cron) e/o paper di
+[[gold_trend]] come 2° modulo del bot.
