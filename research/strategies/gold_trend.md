@@ -45,10 +45,11 @@ in forma sistematica e **decorrelata** dagli altri sleeve.
 `edge-confirmed`. **Secondo edge robusto del progetto** (dopo [[rsi2_meanrev]]), su un
 asset e uno stile **diversi** (oro/trend vs indici/mean-reversion) → forte
 diversificazione. **Cautele load-bearing:**
-- **Single-instrument**: l'argento **NON conferma** (trend fallisce su XAG: PF 0,86,
-  instabile). L'edge è **specifico dell'oro** — non è "metalli preziosi". Un cambio
-  strutturale di regime dell'oro (fine dell'era debasement/acquisti CB) può romperlo. È
-  il rischio principale.
+- **~~Single-instrument~~ → SUPERATO (2026-07-12):** la cautela "argento non conferma"
+  valeva per il long/**short**. In **solo-long** l'argento (e WTI/Brent/rame) confermano →
+  vedi [[commodity_trend]]: c'è un **paniere** trend, non un caso isolato. L'oro resta il
+  membro più robusto (entrambe le metà forti). Rischio residuo: cambio strutturale di
+  regime dell'oro (fine era debasement/acquisti CB).
 - **Long-only ⇒ rende a scatti**: concentrato nei tori dell'oro, **piatto (fuori
   mercato) nei bear** tipo 2011-2015. Sidesteppa i crolli (per questo maxDD −8%) ma non
   guadagna quando l'oro scende.

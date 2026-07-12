@@ -1,0 +1,35 @@
+{
+  "experiment": "paniere commodity-trend — gate completo",
+  "date": "2026-07-12",
+  "description": "Gate trade-level (motore run_backtest: stop ATR + TP1 + trailing, costi) del trend-following Donchian SOLO-LONG su un paniere di 5 commodity (oro, argento, WTI, Brent, rame). Gas escluso (stagionale, PF 0,61). Canonico canale 40, rischio 1%. Estende il lead gold_trend a una classe piu' ampia.",
+  "per_mercato_ch40": {
+    "XAU_USD": {"pf": 2.32, "sharpe": 0.71, "maxdd": -0.08, "n": 94},
+    "XAG_USD": {"pf": 1.62, "sharpe": 0.42, "maxdd": -0.07, "n": 48},
+    "BRENT":   {"pf": 1.90, "sharpe": 0.47, "maxdd": -0.08, "n": 47},
+    "COPPER":  {"pf": 1.51, "sharpe": 0.30, "maxdd": -0.08, "n": 51},
+    "WTI":     {"pf": 1.46, "sharpe": 0.32, "maxdd": -0.07, "n": 58}
+  },
+  "mercati_positivi": "5/5", "pf_mediano": 1.62, "trade_anno": "~3-4 per mercato",
+  "stabilita_due_meta": {
+    "stabili_entrambe": "2/5 (solo oro e argento)",
+    "dettaglio": {"XAU_USD": [1.83, 2.91], "XAG_USD": [1.18, 1.57], "WTI": [1.00, 1.91], "BRENT": [0.90, 3.48], "COPPER": [0.73, 2.64]},
+    "lettura": "WTI/Brent/rame hanno 1a meta' debole/piatta (bear commodity 2012-2019) e 2a meta' fortissima. L'edge non-oro e' CONCENTRATO nel decennio recente."
+  },
+  "sensibilita_canale": {
+    "XAU_USD": {"20": 1.76, "30": 1.96, "40": 2.32, "55": 2.14, "70": 2.45},
+    "XAG_USD": {"20": 1.04, "30": 1.40, "40": 1.62, "55": 1.18, "70": 1.16},
+    "WTI": {"20": 1.00, "30": 1.23, "40": 1.46, "55": 3.05, "70": 2.11},
+    "BRENT": {"20": 1.11, "30": 1.54, "40": 1.90, "55": 2.02, "70": 1.38},
+    "COPPER": {"20": 1.26, "30": 1.15, "40": 1.51, "55": 1.42, "70": 1.57},
+    "nota": "vicinato per lo piu' >1 ma meno pulito dell'oro; qualche punto marginale (silver ch70, WTI ch20)"
+  },
+  "oos_temporale": {"XAU_USD": [1.67, 3.76], "XAG_USD": [1.36, 2.18], "WTI": [1.02, 2.57], "BRENT": [1.10, 3.41], "COPPER": [0.87, 3.54], "nota": "tutti migliorano in OOS, ma l'OOS coincide col supertrend 2020-22: e' forza reale ma regime-specifica"},
+  "portafoglio_paniere": {"sharpe": 0.71, "cagr": 0.010, "maxdd": -0.04, "due_meta": [0.35, 0.95], "nota": "equal-weight sui 5. Diversificazione ottima (maxDD -4%). Entrambe le meta' positive MA la 1a (0,35) e' portata da oro+argento."},
+  "verdetto": "Edge trend-following REALE su commodity, a livello di PORTAFOGLIO del paniere: 5/5 positivi, Sharpe 0,71, maxDD -4%, entrambe le meta' positive, OOS migliora. Diverso da donchian (che era PIATTO): qui e' long-only + le commodity tendono davvero. MA load-bearing: e' REGIME-DIPENDENTE. Oro (e argento) reggono entrambe le meta' -> nucleo solido. WTI/Brent/rame sono concentrati nel decennio recente (supertrend 2020-22) -> promettenti ma NON robusti come l'oro standalone. Status paniere: edge-confirmed a livello portafoglio, con caveat regime; oro edge-confirmed standalone, energia/rame = testing standalone.",
+  "cautele": [
+    "Long-only trend = feast-or-famine: guadagna nei tori commodity, tratta acqua (piccole perdite) nei bear/range come 2012-2019. Rendimento a scatti, dipende dall'esistenza di trend nelle materie prime.",
+    "Buona parte dell'OOS e' il supertrend inflazionistico 2020-22 (COVID/guerra): regime reale ma non garantito che si ripeta. Non sovrappesare energia/rame su questa base.",
+    "Trade rari (~3-4/anno/mercato): pochi eventi -> stime per-mercato rumorose. La diversificazione del paniere e' quello che rende il risultato utilizzabile.",
+    "Il vero valore e' la DIVERSIFICAZIONE + drawdown minuscolo (-4%), non il rendimento assoluto (modesto senza leva)."
+  ]
+}

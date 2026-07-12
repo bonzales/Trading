@@ -8,6 +8,7 @@
 |------------------|----------------|-----------------------------------------------|
 | [[rsi2_meanrev]] | paper          | Compra-il-ribasso RSI2 sugli indici. IN PAPER dal 2026-07-11 (VPS, timer giornaliero, Telegram). |
 | [[gold_trend]]   | edge-confirmed | Trend-following **solo-long** sull'oro (Donchian ~40-55). PF ~2, Sharpe ~0,65, maxDD −8%, OOS migliora. 2° edge robusto (decorrelato). |
+| [[commodity_trend]] | edge-confirmed | Trend long-only su **paniere** oro/argento/WTI/Brent/rame. Portafoglio Sharpe 0,71, maxDD −4%. Nucleo oro+argento solido; energia/rame regime-dipendenti (recenti). |
 | [[fx_meanrev]]   | testing        | Mean-reversion RSI2 sui 7 forex major. Return-based sembrava 2° edge, ma il **trade-level lo declassa**: marginale, cost-fragile (muore a 2× frizioni). Vale solo come sleeve diversificante. |
 | [[donchian]]     | rejected       | Trend-following daily. Su paniere ampio (14 mkt, param fisso) è PIATTO. Edge-confirmed iniziale ritrattato. |
 | [[pullback]]     | testing        | Kraken: pareggio. EUR_USD H1: no edge (PF 0.951). |
@@ -41,12 +42,14 @@
 | [[exp_2026-07-12_fx_meanrev_tradelevel]] | 2026-07-12 | **trade-level fx_meanrev**: DECLASSA a `testing`. 6/7 ma marginale (PF med 1,07), Sharpe 0,31 (vs 0,57), muore a 2× costi, swap non modellato. Non standalone. |
 | [[exp_2026-07-12_gold_trend]] | 2026-07-12 | **edge-confirmed**: oro trend solo-long (Donchian). PF ~2, Sharpe 0,65, maxDD −8%, sensibilità 6/6, OOS migliora. Argento non conferma (gold-specifico). |
 | [[exp_2026-07-12_intraday_indices]] | 2026-07-12 | `rejected`: intraday indici H1 senza edge (MR 0/27 param, breakout PF 0,99). Turnover alto ma costi fatali. Linea chiusa. |
+| [[exp_2026-07-12_commodity_trend]] | 2026-07-12 | **edge-confirmed** (paniere): trend long-only su 5 commodity. Sharpe 0,71, maxDD −4%; ma 2/5 stabili due-metà (oro/argento solidi, energia/rame recenti). |
 
 ---
-**Stato del progetto:** **DUE edge robusti e confermati al trade-level**:
-[[rsi2_meanrev]] (indici, mean-reversion long-only, IN PAPER sul VPS) e [[gold_trend]]
-(oro, trend-following **solo-long**, PF ~2 / maxDD −8% / OOS che migliora). Asset e stili
-**diversi** → decorrelati. Lezione cristallizzata: **asset con drift rialzista (indici,
+**Stato del progetto:** **DUE famiglie di edge robuste e confermate al trade-level**:
+[[rsi2_meanrev]] (indici, mean-reversion long-only, IN PAPER sul VPS) e il trend-following
+**solo-long** su materie prime — [[gold_trend]] (oro, il membro più robusto) generalizzato
+al [[commodity_trend]] (paniere oro/argento/WTI/Brent/rame, portafoglio Sharpe 0,71 / maxDD
+−4%, ma energia/rame regime-dipendenti). Asset e stili **diversi** → decorrelati. Lezione cristallizzata: **asset con drift rialzista (indici,
 oro) → long-only** (indici in MR, oro in trend); gli short remano contro la deriva.
 [[fx_meanrev]] (forex, no drift → simmetrico) sembrava il secondo edge ma il **trade-level
 l'ha declassato a `testing`**: marginale e cost-fragile → **solo sleeve diversificante**,
