@@ -217,6 +217,23 @@ class DonchianStrategy:
 
 
 @dataclass
+class DonchianLongStrategy(DonchianStrategy):
+    """Donchian trend-following SOLO LONG.
+
+    Sugli asset con drift rialzista di fondo (indici, ORO) gli short remano contro
+    la deriva e peggiorano l'edge: sull'oro il solo-long batte nettamente il long/short
+    (PF ~2 vs ~1,3, maxDD -8%, OOS che migliora). Stessa lezione del mean-reversion sugli
+    indici ([[rsi2_meanrev]]). Vedi research/strategies/gold_trend.md.
+    """
+
+    name: str = "donchian_long"
+
+    def signal(self, df: pd.DataFrame, i: int) -> Signal:
+        sig = super().signal(df, i)
+        return sig if sig.side == LONG else Signal(FLAT, sig.price, sig.atr)
+
+
+@dataclass
 class IchimokuStrategy:
     """Ichimoku Kinko Hyo — regole canoniche (trend-following).
 
@@ -279,6 +296,7 @@ def make_strategy(name: str, **params) -> Strategy:
         "pullback": PullbackStrategy,
         "vol_levels": VolumeLevelStrategy,
         "donchian": DonchianStrategy,
+        "donchian_long": DonchianLongStrategy,
         "ichimoku": IchimokuStrategy,
     }
     if name not in registry:

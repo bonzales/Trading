@@ -1,0 +1,23 @@
+{
+  "experiment": "oro — trend-following trade-level (sviluppo del lead)",
+  "date": "2026-07-12",
+  "description": "Backtest trade-level (motore run_backtest: stop ATR + TP1 parziale + trailing, costi spread) del trend-following Donchian sull'oro (XAU_USD, ~20y daily). Argento (XAG_USD) come conferma indipendente. Testate versione long/short e SOLO-long. Il lead 'oro vuole trend' era emerso da raw/exp_2026-07-11_fx_meanrev.json (return-based); qui il gate trade-level.",
+  "config": {"strategia": "donchian breakout", "atr_stop_mult": 2.0, "tp1_r": 1.5, "trail_atr_mult": 2.0, "risk_pct": 0.01, "spread_oro": 0.5, "spread_argento": 0.02, "periods_per_year": 252},
+  "oro_long_short_ch20": {"pf": 1.29, "win": 0.44, "sharpe": 0.35, "maxdd": -0.10, "total_return": 0.42, "n": 230},
+  "oro_SOLO_long": {
+    "ch20": {"pf": 1.76, "sharpe": 0.63, "maxdd": -0.08, "total_return": 0.67, "n": 136},
+    "ch40": {"pf": 2.32, "sharpe": 0.71, "maxdd": -0.08, "n": 94},
+    "ch55": {"pf": 2.14, "sharpe": 0.63, "maxdd": -0.08, "total_return": 0.55, "n": 87},
+    "ch70": {"pf": 2.45, "sharpe": 0.71, "maxdd": -0.06, "n": 79}
+  },
+  "gate_solo_long": {
+    "sensibilita_canale_pf": {"ch10": 1.47, "ch20": 1.76, "ch30": 1.96, "ch40": 2.32, "ch55": 2.14, "ch70": 2.45, "nota": "TUTTI >1,4 su tutto il vicinato 10-70 -> robusto, non parametro fortunato"},
+    "due_meta_ch55": {"pf": [1.67, 2.72], "sharpe": [0.47, 0.80], "nota": "entrambe forti e stabili"},
+    "oos_temporale": {"ch20": {"train_pf": 1.52, "oos_pf": 2.06, "train_sharpe": 0.48, "oos_sharpe": 0.84}, "ch55": {"train_pf": 1.51, "oos_pf": 3.60, "train_sharpe": 0.37, "oos_sharpe": 1.08}, "nota": "OOS MIGLIORA rispetto al train -> contrario dell'overfitting"}
+  },
+  "confronto_buyhold_oro": {"bh_cagr": 0.088, "bh_sharpe": 0.61, "bh_maxdd": -0.45, "nota": "il solo-long trend eguaglia lo Sharpe del buy&hold (0,63 vs 0,61) ma con maxDD -8% invece di -45% (5,6x piu' piccolo). Questo e' il valore: stesso rendimento risk-adjusted, drawdown enormemente minore."},
+  "argento_NON_conferma": {"ch20_pf": 0.86, "ch20_sharpe": -0.15, "due_meta_pf": [0.77, 0.83], "sensibilita": "instabile (ch10 1.31 ma ch20 0.86 ch55 0.74)", "oos_pf": 0.92, "nota": "il trend NON regge sull'argento (meta' industriale, piu' whippy). L'edge e' GOLD-SPECIFICO, non 'metalli preziosi'. Caution: single-instrument."},
+  "perche_solo_long_vince": "L'oro ha drift rialzista secolare (asset monetario, debasement, acquisti banche centrali). Gli short remano contro la deriva. Stessa lezione degli indici: asset con drift -> long-only. Asset senza drift (FX) -> simmetrico ma edge sottile.",
+  "verdetto": "ORO trend-following SOLO-LONG (Donchian breakout, canale ~40-55) = EDGE-CONFIRMED al trade-level. Passa TUTTI i test che fx_meanrev e donchian avevano fallito: PF ~2, Sharpe ~0,65, maxDD -8%, sensibilita' 6/6 canali positiva, due meta' forti, OOS che migliora. Secondo edge robusto del progetto (dopo rsi2 indici), su asset e stile DIVERSI (oro, trend vs indici, MR) -> decorrelato. Strategia registrata: donchian_long. Cautele: single-instrument (argento non conferma), long-only => rende a scatti (concentrato nei tori dell'oro, piatto nei bear tipo 2011-2015), modesto senza leva (~2,7% CAGR). Prossimo gate: paper.",
+  "codice": "src/core/strategy.py::DonchianLongStrategy (registrata come 'donchian_long')"
+}
