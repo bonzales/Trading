@@ -15,5 +15,12 @@
     "La DIREZIONE (surprise trading) richiede un dataset di consenso storico: fonte a pagamento/scraping, non ancora disponibile.",
     "Il valore come filtro va DIMOSTRATO: ridurre size sugli eventi migliora lo Sharpe/drawdown del sistema? Prossimo test."
   ],
-  "prossimo_passo": "Aggiungere il flag macro come mattoncino del generatore e testare se il filtro di rischio (size ridotta sugli eventi) migliora le metriche degli edge confermati. Popolare macro_events.csv con FOMC/CPI se si vuole estendere oltre l'NFP."
+  "value_add_test": {
+    "descrizione": "Testato se ridurre la size sui giorni NFP (damp) migliora gli edge confermati (return-based). Risultato NEGATIVO.",
+    "MR_indici_sharpe": {"damp_1.0": 0.566, "damp_0.5": 0.556, "damp_0.0": 0.539, "maxdd": {"1.0": -0.129, "0.5": -0.124, "0.0": -0.119}},
+    "trend_commodity_sharpe": {"damp_1.0": 0.527, "damp_0.5": 0.519, "damp_0.0": 0.503, "maxdd": {"1.0": -0.280, "0.5": -0.265, "0.0": -0.270}},
+    "conclusione": "Piu' si taglia la size sugli eventi, PEGGIO va lo Sharpe su entrambi gli sleeve. Il drawdown migliora marginalmente ma non compensa. Ragione: sono strategie DAILY che tengono la posizione attraverso l'evento; la vol NFP e' simmetrica e l'edge ci guadagna anche li'. Il filtro avrebbe senso solo per strategie INTRADAY (assenti, fallite) o con dati direzionali (assenti)."
+  },
+  "verdetto_finale": "L'effetto volatilita' e' REALE (14/14) ma il filtro 'riduci size sugli eventi' NON migliora gli edge daily confermati -> NON integrato nel sistema. Resta uno strumento pronto per un uso futuro (intraday, o direzionale con dati di consenso). Testato il value-add e onestamente scartato per ora.",
+  "prossimo_passo": "Non agganciare il filtro agli edge daily (non aiuta). Riprenderlo se/quando: (a) emergono strategie intraday, o (b) si procurano dati di consenso per il segnale direzionale. Il calendario/event-study restano infrastruttura riutilizzabile."
 }

@@ -23,14 +23,29 @@ venerdì del mese, derivato senza dati esterni) sulla volatilità giornaliera:
 - La **direzione** invece è **rumorosa**: il rendimento medio nei giorni NFP non è
   distinguibile → **non predicibile** senza il dato di consenso.
 
-## Verdetto: filtro di RISCHIO, non predittore di direzione
-`testing`. L'effetto sulla **volatilità** è reale e universale → uso corretto: **filtro di
-rischio**. Nei giorni ad alto impatto: ridurre la size / allargare gli stop / non aprire
-nuove posizioni. È quello che fa un professionista: non "indovinare il dato", ma **non
-farsi sorprendere**. Helper: `size_multiplier(is_event_day, damp=0.5)`.
+## Il test del valore aggiunto — NEGATIVO per i nostri edge
+Ho testato se ridurre la size sui giorni NFP **migliora** gli edge confermati (return-based):
+| damp NFP | MR indici Sharpe | Trend commodity Sharpe |
+|----------|------------------|------------------------|
+| 1,0 (nessun filtro) | **0,566** | **0,527** |
+| 0,5 | 0,556 | 0,519 |
+| 0,0 | 0,539 | 0,503 |
 
-**Non** è un segnale direzionale (quello richiederebbe un dataset di consenso, a pagamento/
-scraping — non ancora disponibile).
+**Più si taglia, peggio va lo Sharpe** su entrambi. Il drawdown scende un filo
+(−12,9%→−11,9%) ma non compensa la perdita di rendimento. **Ragione:** sono strategie
+**daily** che tengono la posizione attraverso l'evento; la vol NFP è simmetrica e l'edge
+ci guadagna anche in quei giorni. Tagliare la size rimuove esposizione dove c'è comunque
+valore atteso positivo.
+
+## Verdetto: effetto reale, ma filtro NON integrato (non aiuta il sistema attuale)
+`testing`. L'effetto sulla **volatilità** è reale e universale (14/14), ma il filtro
+"riduci size sugli eventi" **non migliora** gli edge daily confermati → **non lo
+agganciamo** al sistema. Onestamente testato e scartato per ora. Avrebbe senso solo per:
+- strategie **intraday** (che non abbiamo — sono fallite), dove lo spike conta *dentro* la giornata;
+- un segnale **direzionale**, che richiederebbe dati di **consenso** (a pagamento/scraping).
+
+Il calendario + event-study + `size_multiplier` restano **infrastruttura pronta** per
+quando (e se) si aprirà uno di quei due scenari.
 
 ## Limiti onesti
 - Solo **NFP** è derivabile senza dati esterni. **FOMC/CPI/BCE** richiedono un elenco date
@@ -39,8 +54,7 @@ scraping — non ancora disponibile).
   Sharpe/drawdown del sistema? È il prossimo test, non un dato di fede.
 
 ## Prossimo passo (gate §5)
-1. Testare se il filtro (size ridotta sugli eventi) **migliora** le metriche degli edge
-   confermati ([[rsi2_meanrev]], [[commodity_trend]]).
-2. Diventa un **mattoncino del generatore**: il motore notturno può testare varianti
-   con/senza filtro macro e vedere se aggiunge valore, con la watchlist a fare da giudice.
-3. Se si vuole la **direzione**: decidere se procurarsi i dati di consenso (costo/fragilità).
+Il value-add è stato testato e **scartato** per gli edge daily. Riprenderlo **solo** se:
+1. emergono strategie **intraday** (lì lo spike macro conta davvero, dentro la giornata);
+2. si procurano dati di **consenso** per il segnale direzionale (decisione costo/fragilità).
+Fino ad allora, calendario ed event-study restano infrastruttura, non un ingranaggio attivo.
