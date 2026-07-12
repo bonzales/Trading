@@ -15,7 +15,7 @@ def _df(n=800):
 def _stub(pf_full, pf_h1, pf_h2, pf_train, pf_oos, n=100):
     """Restituisce un run_template finto che dà PF diversi per ciascuna fetta,
     riconoscendo la fetta dalla lunghezza del df passato."""
-    def fake(name, df, spread):
+    def fake(name, df, spread, params=None):
         L = len(df)
         full = 800
         if L == full: pf = pf_full

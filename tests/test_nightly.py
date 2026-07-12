@@ -1,31 +1,52 @@
-"""Test del riepilogo Telegram del job notturno (rilevamento novità)."""
-from src.research.engine import Result
+"""Test del riepilogo Telegram del job notturno (stato watchlist)."""
 from src.research.nightly import telegram_summary
+from src.research.watchlist import Watched, Watchlist
 
 
-def _r(symbol, template, tf="D", verdict="confirmed", pf=1.5):
-    return Result(symbol, "index", tf, template, verdict, pf, pf, pf, pf, pf, pf, None, -0.1, 100)
+class _WL:
+    """Watchlist minima con stati prefissati."""
+    def __init__(self, **counts):
+        self._by = counts
+
+    def by_status(self, status):
+        return self._by.get(status, [])
 
 
-def test_nessuna_novita_se_tutto_noto():
-    res = {"D": [_r("US500", "mr_indices")]}  # gia' in KNOWN_D
-    msg = telegram_summary(res, {"D": {"n_combos": 1, "confirmed": 1}})
-    assert "Nessuna novità" in msg
+def _w(symbol, template, status, fwd_pf=1.5, n=45, tf="D"):
+    return Watched(spec_id="x", symbol=symbol, template=template, timeframe=tf,
+                   params={}, spread=0.5, discovered="2020-01-01", discovery_pf=1.8,
+                   status=status, fwd_pf=fwd_pf, fwd_trades=n)
 
 
-def test_segnala_novita_daily():
-    res = {"D": [_r("USD_JPY", "mr_fx")]}  # non in KNOWN_D
-    msg = telegram_summary(res, {"D": {"n_combos": 1, "confirmed": 1}})
-    assert "Novità" in msg and "USD_JPY" in msg
+def test_conteggi_base():
+    msg = telegram_summary({"D": []}, {"D": {"n_combos": 100, "confirmed": 12}})
+    assert "100 combo testate" in msg and "12 candidati" in msg
 
 
-def test_intraday_confermato_e_sempre_novita():
-    res = {"H4": [_r("US500", "mr_indices", tf="H4")]}  # noto a D, ma H4 e' nuovo
-    msg = telegram_summary(res, {"H4": {"n_combos": 1, "confirmed": 1}})
-    assert "Novità" in msg and "H4" in msg
+def test_nessun_graduato_niente_attenzione():
+    wl = _WL(watching=[_w("US500", "mr_indices", "watching")], holding=[], failing=[], graduated=[])
+    msg = telegram_summary({"D": []}, {"D": {"n_combos": 10, "confirmed": 1}}, wl)
+    assert "Nessun graduato" in msg and "1 in osservazione" in msg
 
 
-def test_suspect_non_e_novita():
-    res = {"D": [_r("USD_JPY", "mr_fx", verdict="suspect")]}
-    msg = telegram_summary(res, {"D": {"n_combos": 1, "confirmed": 0}})
-    assert "Nessuna novità" in msg
+def test_graduato_va_segnalato():
+    wl = _WL(watching=[], holding=[], failing=[],
+             graduated=[_w("WTI", "trend_long", "graduated", fwd_pf=1.9, n=50)])
+    msg = telegram_summary({"D": []}, {"D": {"n_combos": 10, "confirmed": 1}}, wl)
+    assert "GRADUATI" in msg and "WTI" in msg and "fwd PF 1.90" in msg
+
+
+def test_nuovi_candidati_segnalati():
+    wl = _WL(watching=[], holding=[], failing=[], graduated=[])
+    msg = telegram_summary({"D": []}, {"D": {"n_combos": 10, "confirmed": 2}}, wl, new_added=2)
+    assert "2 nuovi candidati" in msg
+
+
+def test_ledger_scetticismo_in_coda():
+    class _L:
+        n_distinct = 200
+        def expected_false_positives(self, a=0.05):
+            return 10.0
+    wl = _WL(graduated=[])
+    msg = telegram_summary({"D": []}, {"D": {"n_combos": 10, "confirmed": 0}}, wl, _L())
+    assert "200 ipotesi" in msg and "falsi positivi" in msg

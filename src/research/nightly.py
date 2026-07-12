@@ -18,6 +18,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+from src.adapters.resample import load_tf
 from src.research.engine import Result, run_sweep, summarize, to_rows
 
 # Edge daily già noti/documentati (symbol, template): servono a calcolare le NOVITÀ,
@@ -34,35 +35,45 @@ KNOWN_D: set[tuple[str, str]] = {
 }
 
 
-def _novelties(all_results: dict[str, list[Result]]) -> list[Result]:
-    """Confermate che NON conosciamo già: nuove a daily, o qualsiasi su TF intraday."""
-    out = []
-    for tf, results in all_results.items():
-        for r in results:
-            if r.verdict != "confirmed":
-                continue
-            if tf == "D" and (r.symbol, r.template) in KNOWN_D:
-                continue
-            out.append(r)
-    return out
+def is_novel(r: Result) -> bool:
+    """Candidato genuinamente nuovo: (symbol, template base) non tra gli edge già noti.
+    Le varianti di parametri di un edge noto NON sono novità (stesso template base)."""
+    return not (r.timeframe == "D" and (r.symbol, r.template) in KNOWN_D)
 
 
-def telegram_summary(all_results: dict[str, list[Result]], summary_all: dict) -> str:
-    """Messaggio Telegram CORTO (plain-text): solo conteggi + novità. Niente markdown."""
+def telegram_summary(all_results: dict[str, list[Result]], summary_all: dict,
+                     watchlist=None, ledger=None, new_added: int = 0) -> str:
+    """Messaggio Telegram CORTO (plain-text): conteggi + stato watchlist. Niente markdown.
+
+    L'azione per te scatta SOLO quando compaiono candidati ⭐ GRADUATI: hanno retto sul
+    forward (dati post-scoperta) → meritano che me li porti per la revisione/wiki.
+    """
     today = datetime.now(timezone.utc).date().isoformat()
     tot = sum(s["n_combos"] for s in summary_all.values())
     conf = sum(s["confirmed"] for s in summary_all.values())
     tfs = ",".join(all_results.keys())
-    lines = [f"🔬 Ricerca notturna {today}", f"TF {tfs} · {tot} combo · {conf} confermate"]
-    nov = _novelties(all_results)
-    if not nov:
-        lines.append("✅ Nessuna novità rispetto agli edge noti.")
-    else:
-        lines.append(f"🆕 Novità ({len(nov)}):")
-        for r in nov[:8]:
-            lines.append(f"• {r.symbol} {r.template} {r.timeframe} (PF {r.pf_full:.2f}, OOS {r.pf_oos:.2f})")
-        if len(nov) > 8:
-            lines.append(f"…e altre {len(nov) - 8}. Vedi report.")
+    lines = [f"🔬 Ricerca notturna {today}",
+             f"TF {tfs} · {tot} combo testate · {conf} candidati (gate ok)"]
+    if watchlist is not None:
+        grad = watchlist.by_status("graduated")
+        hold = watchlist.by_status("holding")
+        watch = watchlist.by_status("watching")
+        fail = watchlist.by_status("failing")
+        lines.append(f"📋 Watchlist: {len(watch)} in osservazione · {len(hold)} reggono "
+                     f"· {len(fail)} fallite")
+        if new_added:
+            lines.append(f"🆕 {new_added} nuovi candidati messi in osservazione")
+        if grad:
+            lines.append(f"⭐ GRADUATI ({len(grad)}) — reggono sul FORWARD, da rivedere:")
+            for w in grad[:6]:
+                p = f"[{','.join(f'{k}={v}' for k,v in w.params.items())}]" if w.params else ""
+                lines.append(f"• {w.symbol} {w.template}{p} {w.timeframe} "
+                             f"(fwd PF {w.fwd_pf:.2f}/{w.fwd_trades} tr)")
+        else:
+            lines.append("✅ Nessun graduato: niente che richieda la tua attenzione oggi.")
+    if ledger is not None:
+        lines.append(f"(frugate {ledger.n_distinct} ipotesi in totale; "
+                     f"~{ledger.expected_false_positives():.0f} falsi positivi attesi per caso)")
     return "\n".join(lines)
 
 
@@ -120,10 +131,31 @@ def run(timeframes: list[str], out_dir: str, cache_dir: str = "raw/cache",
 
     all_results: dict[str, list[Result]] = {}
     summary_all: dict[str, dict] = {}
+    all_spec_ids: list[str] = []
     for tf in timeframes:
-        res = run_sweep(timeframe=tf, cache_dir=cache_dir)
+        res = run_sweep(timeframe=tf, cache_dir=cache_dir, explore=True)
         all_results[tf] = res
         summary_all[tf] = summarize(res)
+        all_spec_ids += [r.spec_id for r in res]
+
+    # registro cumulativo (memoria anti-multiple-testing)
+    from src.research.ledger import Ledger
+    ledger = Ledger(out / "ledger.json")
+    ledger.record(all_spec_ids)
+    ledger.save()
+
+    # watchlist forward: registra i nuovi candidati confermati e aggiorna la performance
+    # sui dati POST-scoperta (la difesa vera contro il data-mining)
+    from src.research.watchlist import Watchlist
+    wl = Watchlist(out / "watchlist.json")
+    new_added = 0
+    for tf, res in all_results.items():
+        for r in res:
+            if r.verdict == "confirmed" and is_novel(r):
+                if wl.add_if_new(r.to_spec(), r.pf_full, today):
+                    new_added += 1
+    wl.update_forward(lambda s, t: load_tf(s, t, cache_dir), today)
+    wl.save()
 
     payload = {"date": today, "timeframes": timeframes,
                "summary": summary_all,
@@ -136,19 +168,21 @@ def run(timeframes: list[str], out_dir: str, cache_dir: str = "raw/cache",
     # stub cronologico per research/log.md (la consolidazione la fa l'umano con l'ingest)
     conf = sum(s["confirmed"] for s in summary_all.values())
     tot = sum(s["n_combos"] for s in summary_all.values())
+    grad = len(wl.by_status("graduated"))
     log_line = (f"## [{today}] nightly | sweep {'/'.join(timeframes)}: {tot} combo, "
-                f"{conf} confermate. Report: {md_path}\n")
+                f"{conf} candidati, {new_added} nuovi in watchlist, {grad} graduati. "
+                f"Report: {md_path}\n")
     log_stub = out / "nightly_log_stub.txt"
     with log_stub.open("a") as fh:
         fh.write(log_line)
 
-    # riepilogo Telegram corto (solo novità) — no-op se Telegram non configurato
+    # riepilogo Telegram corto — no-op se Telegram non configurato
     if not no_telegram:
         _load_env()  # porta TELEGRAM_* in os.environ (come fa load_settings del bot)
         from src.live.notifier import TelegramNotifier
         notifier = TelegramNotifier()
         if notifier.enabled:
-            notifier.send(telegram_summary(all_results, summary_all))
+            notifier.send(telegram_summary(all_results, summary_all, wl, ledger, new_added))
             print("Riepilogo inviato su Telegram.")
 
     print(f"Report scritto: {md_path}")
