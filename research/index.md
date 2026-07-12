@@ -17,7 +17,7 @@
 | [[breakout]]     | rejected       | Forte perdita su Kraken (12 mesi reali).      |
 | [[meanrev]]      | rejected       | Perdita su Kraken.                             |
 | [[ichimoku]]     | rejected       | Kraken: perdita. Daily 14 mkt: trend-following, 5/14 pos, PF mediano 0,94. |
-| [[cot_factor]]   | testing        | Posizionamento istituzionale COT. NON è edge standalone (rumore a 20gg; a 60gg debole su WTI/EUR/US500). Al più filtro di size sulle commodity. |
+| [[cot_factor]]   | testing        | Posizionamento istituzionale COT (report GIUSTI: Managed Money/Leveraged Funds). Debole ma reale e OOS-solido su ORO (momentum) e WTI (contrarian). Candidato tilt di size, non standalone. |
 
 ## Strumenti
 | Pagina       | Status   | Note                                              |

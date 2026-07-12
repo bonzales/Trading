@@ -1,30 +1,41 @@
 {
   "experiment": "COT (posizionamento istituzionale) — ha potere predittivo?",
   "date": "2026-07-12",
-  "description": "Test onesto se i fattori COT (COT index normalizzato 0-100 su net commerciali e speculatori, finestra 156 settimane) predicono il rendimento forward. Information coefficient (corr segnale vs rendimento futuro) + medie nei bucket estremi (>=80 / <=20). Dati CFTC Legacy Futures-Only, storia 16-37 anni settimanale.",
-  "orizzonte_20giorni": {
-    "verdetto": "quasi tutto rumore: |IC| ~0.02 su quasi tutti i mercati",
-    "IC_per_mercato": {"XAU_USD": 0.015, "XAG_USD": -0.017, "WTI": -0.025, "COPPER": 0.030, "NATGAS": 0.076, "EUR_USD": 0.122, "GBP_USD": -0.022, "US500": -0.048}
+  "description": "Test se i fattori COT (COT index 0-100, finestra 156 sett.) predicono il rendimento forward 60gg. IC = corr(segnale, rendimento futuro) + bucket estremi. DUE versioni: (1) report LEGACY grezzo [SBAGLIATO per finanziari], poi (2) report CORRETTI: Disaggregated (Managed Money vs Producer) per le commodity, TFF (Leveraged Funds vs Asset Manager) per forex/indici.",
+  "v1_legacy_report_SUPERATO": {
+    "nota": "Prima versione con report Legacy (commercial/non-commercial grezzo). Verdetto iniziale 'COT debole/rumore' era PREMATURO: per forex/indici il 'commercial' Legacy sono per lo piu' dealer, categoria priva di senso. Corretto sotto.",
+    "IC_60gg": {"XAU_USD": 0.062, "WTI_comm": 0.113, "EUR_spec": 0.175, "US500_comm": 0.083}
   },
-  "orizzonte_60giorni": {
-    "verdetto": "emerge un segnale DEBOLE ma economicamente sensato su alcuni mercati",
-    "risultati": {
-      "WTI": {"ic_comm": 0.113, "spread_bucket": 0.0597, "nota": "commercial net-long estremo -> +5,2% vs -0,8%. Segnale COT classico (produttori = smart money su commodity)."},
-      "EUR_USD": {"ic_spec": 0.175, "spread_bucket": 0.0188, "nota": "segue il posizionamento speculativo (momentum-ish)"},
-      "US500": {"ic_comm": 0.083, "spread_bucket": 0.0246, "nota": "commercial-long -> +3,2% vs +0,7%"},
-      "NATGAS": {"ic_spec": 0.139, "nota": "IC alto ma rumorosissimo (natgas selvaggio, bucket -10% su pochi punti) -> non affidabile"},
-      "XAU_USD": {"ic_spec": 0.062, "nota": "debole"},
-      "COPPER": {"ic_comm": -0.053, "nota": "~zero"},
-      "GBP_USD": {"nota": "~zero"}
+  "v2_report_CORRETTI": {
+    "commodity_report": "Disaggregated (m_money = fondi trend, prod_merc = veri hedger)",
+    "finanziari_report": "TFF (lev_money = hedge fund/speculatori, asset_mgr = real money)",
+    "IC_60gg_full": {
+      "XAU_USD_spec(MM)": 0.131, "XAG_USD_comm(prod)": 0.098, "WTI_spec(MM)": -0.112,
+      "COPPER": 0.014, "NATGAS": 0.043, "EUR_spec(lev)": 0.099, "GBP_spec(lev)": -0.130, "US500_comm(AM)": -0.117
+    },
+    "bucket_spread_esempi": {
+      "XAU_USD": "MM estremo-long -> +3,74% vs +1,37% (spread +2,4%): momentum",
+      "WTI": "MM estremo-long -> +1,65% vs +5,63% (spread -4,0%): contrarian (crowding)",
+      "US500": "AssetMgr estremo-long -> +0,96% vs +5,33% (spread -4,4%): contrarian"
     }
   },
-  "cautele_metodologiche": [
-    "Rendimenti forward SOVRAPPOSTI (specie a 60gg) -> autocorrelazione -> campione effettivo piccolo -> significativita' gonfiata.",
-    "Multiple testing: 8 mercati x 2 segnali x 2 orizzonti = 32 test; qualche IC alto e' atteso per caso.",
-    "Segnale lento (60gg) e debole (IC 0.1-0.18 nel migliore dei casi) -> NON tradabile standalone.",
-    "Nessun split OOS ancora: i mercati che brillano (WTI/EUR) andrebbero confermati fuori campione prima di crederci."
+  "OOS_check_60gg": {
+    "metodo": "IC su train 60% vs test 40%: regge se stesso segno e |IC_test|>0,03",
+    "reggono": {
+      "XAU_USD_spec(MM)": {"train": 0.049, "test": 0.146, "segno": "momentum, va CON i fondi"},
+      "WTI_spec(MM)": {"train": -0.116, "test": -0.082, "segno": "contrarian, va CONTRO i fondi agli estremi"},
+      "GBP_USD_spec(lev)": {"train": -0.084, "test": -0.269, "segno": "contrarian"}
+    },
+    "NON_reggono_sign_flip": {
+      "XAG_USD": {"train": -0.065, "test": 0.294}, "US500": {"train": -0.273, "test": 0.116}, "EUR_USD": {"train": 0.148, "test": -0.075}
+    }
+  },
+  "cautele": [
+    "Rendimenti forward SOVRAPPOSTI (60gg) -> significativita' gonfiata anche dove regge.",
+    "Multiple testing: molti mercati x segnali x orizzonti; 3/6 che reggono OOS e' segnale debole+reale, non forte.",
+    "IC ~0,1 = potere predittivo MODESTO (spiega ~1% della varianza). Utile come tilt, non come trigger.",
+    "Segno diverso per mercato (oro momentum, WTI/US contrarian): sensato ma =piu' gradi di liberta' -> rischio overfitting nel combinare."
   ],
-  "verdetto": "Il COT NON e' una strategia e NON e' un edge standalone. A 20gg e' rumore; a 60gg mostra un segnale debole e sensato solo su commodity (WTI in primis, dove i commercial sono veri produttori) e in parte EUR/US500. Uso corretto: FILTRO DI CONTESTO / tilt di size sugli edge gia' confermati (es. rafforzare/alleggerire il trend sul petrolio in base ai commercial), NON un segnale di ingresso a se'. Va comunque DIMOSTRATO che aggiunga valore prima di inserirlo. Il test ha evitato di bullonare un fattore-folklore sul sistema.",
-  "prossimo_passo": "Se si vuole: testare se filtrare/tiltare il commodity-trend (WTI/oro) col COT dei commercial MIGLIORA le metriche del sleeve. Tenerlo SOLO se supera. Infrastruttura (downloader + factor) committata e riutilizzabile.",
-  "codice": "src/adapters/cot/download.py, src/adapters/cot/factor.py"
+  "verdetto": "CORRETTO rispetto alla v1: col report GIUSTO il COT ha un segnale DEBOLE ma REALE che sopravvive all'OOS su ORO (Managed Money, momentum), WTI (Managed Money, contrarian sugli estremi) e GBP (Leveraged Funds, contrarian). Argento/US500/EUR cambiano segno OOS = non affidabili. NON e' un edge standalone (IC ~0,1), ma su oro e WTI -- dove abbiamo GIA' un trend edge confermato -- e' un candidato credibile come TILT DI SIZE. Prossimo: dimostrare che tiltare il commodity-trend (oro/WTI) col COT MIGLIORA il sleeve OOS; tenerlo solo se supera.",
+  "codice": "src/adapters/cot/download.py (routing 3 report), src/adapters/cot/factor.py"
 }
