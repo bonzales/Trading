@@ -1,0 +1,30 @@
+{
+  "experiment": "fx_meanrev — backtest TRADE-LEVEL (il gate mancante)",
+  "date": "2026-07-12",
+  "description": "Validazione trade-by-trade del mean-reversion RSI2 simmetrico sui 7 forex major, con stop ATR, sizing sul rischio (1%/trade), costi spread realistici per coppia. Codice: src/backtest/fx_meanrev.py. Confronta con la validazione SOLO return-based (Sharpe 0,57) di raw/exp_2026-07-11_fx_meanrev.json.",
+  "config_canonica": {"rsi_period": 2, "oversold": 10, "overbought": 90, "exit_rsi": 50, "atr_stop": 3.0, "max_hold": 10, "risk_pct": 0.01},
+  "spreads_prezzo": {"EUR_USD": 0.00010, "GBP_USD": 0.00015, "USD_JPY": 0.010, "AUD_USD": 0.00012, "USD_CHF": 0.00012, "USD_CAD": 0.00013, "NZD_USD": 0.00018},
+  "per_mercato": {
+    "EUR_USD": {"pf": 1.17, "win": 0.65, "exp_R": 0.023, "n": 873, "maxdd": -0.06},
+    "GBP_USD": {"pf": 1.01, "win": 0.65, "exp_R": 0.001, "n": 888, "maxdd": -0.12},
+    "USD_JPY": {"pf": 1.07, "win": 0.65, "exp_R": 0.011, "n": 857, "maxdd": -0.11},
+    "AUD_USD": {"pf": 1.00, "win": 0.65, "exp_R": -0.001, "n": 839, "maxdd": -0.11},
+    "USD_CHF": {"pf": 1.17, "win": 0.67, "exp_R": 0.023, "n": 881, "maxdd": -0.07},
+    "USD_CAD": {"pf": 1.07, "win": 0.66, "exp_R": 0.010, "n": 856, "maxdd": -0.08},
+    "NZD_USD": {"pf": 1.05, "win": 0.64, "exp_R": 0.007, "n": 700, "maxdd": -0.08}
+  },
+  "mercati_pf_positivi": "6/7 (AUD_USD break-even 1.00)",
+  "pf_mediano": 1.07,
+  "stabilita_due_meta": {"stabili_entrambe": "5/7", "falliscono": ["USD_JPY (2a 0.97)", "AUD_USD (1a 0.97)"]},
+  "portafoglio": {"cagr": 0.025, "maxdd": -0.27, "sharpe_daily": 0.31, "sharpe_1a_meta": 0.46, "sharpe_2a_meta": 0.17, "trade_totali": 5894, "nota": "Sharpe 0,31 vs 0,57 return-based: costi+stop dimezzano l'edge. 2a meta' molto piu' debole (0,17): edge in decadimento nell'era recente."},
+  "sensibilita_parametri": {"combinazioni_pf_med_positive": "27/27", "pf_mediano_peggiore": 1.02, "nota": "robusto ai parametri: non e' un parametro fortunato"},
+  "oos_temporale": {"train_pf_mediano": 1.04, "oos_pf_mediano": 1.07, "nota": "regge/migliora fuori campione"},
+  "fragilita_costi": {
+    "hold_medio_giorni": 3.4,
+    "swap_NON_modellato": "posizioni tenute ~3-4 giorni -> lo swap/rollover forex conta e NON e' incluso.",
+    "test_frizioni_multiple": {"1.0x": {"pf_med": 1.07, "mkt_pos": "6/7"}, "1.5x": {"pf_med": 1.04, "mkt_pos": "5/7"}, "2.0x": {"pf_med": 1.01, "mkt_pos": "4/7"}, "3.0x": {"pf_med": 0.97, "mkt_pos": "3/7"}},
+    "conclusione_costi": "A 2x le frizioni (plausibile con spread reale + slippage + swap su hold di 3-4gg) l'edge SVANISCE (PF 1.01, exp_R +0.002). Edge razor-thin e cost-fragile."
+  },
+  "verdetto": "Il gate trade-level DECLASSA fx_meanrev rispetto al risultato return-based. Edge REALE ma MARGINALE e FRAGILE AI COSTI: 6/7 positivi ma diversi appena sopra 1.0, exp_R minuscolo (+0.001..+0.023R), muore a 2x frizioni, swap non modellato, 2a meta' debole. NON tradeable standalone. Resta valido SOLO come sleeve diversificante (decorrelato dagli indici) nel sistema multi-edge, sizing conservativo. NON promuovere a paper standalone: la decisione di non spingerlo sul VPS per lunedi' e' CONFERMATA dai dati.",
+  "confronto_con_rsi2": "rsi2 indici: PF 1.08-2.57 (US500 2.57), 5/5, due meta' stabili, maxDD -8%. fx_meanrev: PF 1.00-1.17, 6/7, 5/7 meta' stabili, maxDD -27%, muore a 2x costi. fx_meanrev e' un edge NETTAMENTE piu' debole."
+}

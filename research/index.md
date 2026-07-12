@@ -7,7 +7,7 @@
 | Pagina           | Status         | Sintesi                                       |
 |------------------|----------------|-----------------------------------------------|
 | [[rsi2_meanrev]] | paper          | Compra-il-ribasso RSI2 sugli indici. IN PAPER dal 2026-07-11 (VPS, timer giornaliero, Telegram). |
-| [[fx_meanrev]]   | edge-confirmed | Mean-reversion RSI2 sui 7 forex major. 7/7 positivi, 12/12 param, OOS 0,51→0,68. 2° edge (decorrelato). |
+| [[fx_meanrev]]   | testing        | Mean-reversion RSI2 sui 7 forex major. Return-based sembrava 2° edge, ma il **trade-level lo declassa**: marginale, cost-fragile (muore a 2× frizioni). Vale solo come sleeve diversificante. |
 | [[donchian]]     | rejected       | Trend-following daily. Su paniere ampio (14 mkt, param fisso) è PIATTO. Edge-confirmed iniziale ritrattato. |
 | [[pullback]]     | testing        | Kraken: pareggio. EUR_USD H1: no edge (PF 0.951). |
 | [[dax_open_volume]] | rejected    | Scalping apertura indici (volume multi-day). Test fedele 4 indici: US500 perde su 356 trade → no edge meccanico dopo costi. |
@@ -36,14 +36,18 @@
 | [[exp_2026-07-08_ichimoku_daily]] | 2026-07-08 | `rejected`: trend-following travestito, 5/14 pos, PF mediano 0,94 (come donchian). |
 | [[exp_2026-07-11_fx_meanrev]] | 2026-07-11 | **edge-confirmed**: mean-reversion 7 forex major; 7/7, 12/12 param, OOS migliora. Oro→trend (lead). |
 | [[exp_2026-07-12_riskparity]] | 2026-07-12 | **risk-parity** sul multi-edge: Sharpe 0,55→0,74 e maxDD −12%→−8% insieme; robusto su finestre 40-180g. Pesatura di default. |
+| [[exp_2026-07-12_fx_meanrev_tradelevel]] | 2026-07-12 | **trade-level fx_meanrev**: DECLASSA a `testing`. 6/7 ma marginale (PF med 1,07), Sharpe 0,31 (vs 0,57), muore a 2× costi, swap non modellato. Non standalone. |
 
 ---
-**Stato del progetto:** **DUE edge confermati**: [[rsi2_meanrev]] (indici, IN PAPER sul
-VPS) e [[fx_meanrev]] (forex major, decorrelato) — entrambi mean-reversion robusti
-(tutti i mercati positivi, param-insensibili, OOS che regge/migliora). Lead aperto:
-oro→trend-following. Rigettati con rigore: scalping-
-volumi DAX ([[dax_open_volume]], [[vol_levels]]) e trend-following daily ([[donchian]],
-piatto nel drought 2011-26). Lezione chiave: validare col **portafoglio intero a
-parametro fisso** + sensibilità parametri, non fidarsi di un walk-forward con OOS da
-outlier. Broker dati = Dukascopy; esecuzione = IBKR. **Prossimo passo: paper trading di
-`rsi2_meanrev` su demo** (attivare IB Gateway).
+**Stato del progetto:** **UN edge robusto e confermato**: [[rsi2_meanrev]] (indici, IN
+PAPER sul VPS) — mean-reversion che passa tutti i test (5/5 positivi, param-insensibile,
+OOS che migliora, maxDD −8%). [[fx_meanrev]] (forex) sembrava il secondo edge ma il
+**backtest trade-level (2026-07-12) l'ha declassato a `testing`**: marginale e
+cost-fragile (muore a 2× frizioni, swap non modellato) → vale **solo come sleeve
+diversificante** nel sistema multi-edge, non standalone. Lead aperto: oro→trend-following.
+Sistema multi-edge con **risk-parity** (Sharpe combinato 0,74). Rigettati con rigore:
+scalping-volumi DAX ([[dax_open_volume]], [[vol_levels]]) e trend-following daily
+([[donchian]], piatto nel drought 2011-26). Lezione chiave: validare col **portafoglio
+intero a parametro fisso** + sensibilità + **trade-level con costi realistici** (è quello
+che ha smascherato fx_meanrev). Broker dati = Dukascopy; esecuzione = IBKR. **Prossimo
+passo: sviluppare l'oro-trend a livello trade** (3° sleeve candidato).
