@@ -35,6 +35,7 @@
 | [[exp_2026-07-08_rsi2_meanrev]] | 2026-07-08 | **edge-confirmed**: compra-il-ribasso indici; 5/5, 27/27 param, OOS migliora. |
 | [[exp_2026-07-08_ichimoku_daily]] | 2026-07-08 | `rejected`: trend-following travestito, 5/14 pos, PF mediano 0,94 (come donchian). |
 | [[exp_2026-07-11_fx_meanrev]] | 2026-07-11 | **edge-confirmed**: mean-reversion 7 forex major; 7/7, 12/12 param, OOS migliora. Oro→trend (lead). |
+| [[exp_2026-07-12_riskparity]] | 2026-07-12 | **risk-parity** sul multi-edge: Sharpe 0,55→0,74 e maxDD −12%→−8% insieme; robusto su finestre 40-180g. Pesatura di default. |
 
 ---
 **Stato del progetto:** **DUE edge confermati**: [[rsi2_meanrev]] (indici, IN PAPER sul

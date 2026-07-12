@@ -1,0 +1,36 @@
+{
+  "experiment": "risk-parity sul sistema multi-edge",
+  "date": "2026-07-12",
+  "description": "Sostituita la pesatura equal-weight con risk-parity (inverse-vol) sui 3 sleeve decorrelati del sistema multi-edge. Validazione return-based (posizione +/-1, costi spread). Correlazioni ~0 tra gli sleeve => inverse-vol coincide di fatto con equal-risk-contribution.",
+  "sleeves": {
+    "idx_MR":    {"sharpe": 0.48, "cagr": 0.019, "maxdd": -0.13, "vol_annua": 0.040},
+    "fx_MR":     {"sharpe": 0.33, "cagr": 0.009, "maxdd": -0.09, "vol_annua": 0.029},
+    "oro_trend": {"sharpe": 0.40, "cagr": 0.049, "maxdd": -0.35, "vol_annua": 0.150}
+  },
+  "pesature_senza_leva": {
+    "equal_weight":            {"sharpe": 0.55, "cagr": 0.028, "maxdd": -0.12},
+    "risk_parity_dinamica_60g_noLA": {"sharpe": 0.74, "cagr": 0.019, "maxdd": -0.08},
+    "risk_parity_statica_riferimento_lookahead": {"sharpe": 0.67, "cagr": 0.018, "maxdd": -0.07}
+  },
+  "pesi": {
+    "statici_inverse_vol": {"idx_MR": 0.38, "fx_MR": 0.52, "oro_trend": 0.10},
+    "dinamici_medi":       {"idx_MR": 0.46, "fx_MR": 0.44, "oro_trend": 0.09}
+  },
+  "vol_target_15pct": {
+    "equal_weight":         {"leva": 2.8, "cagr": 0.074, "maxdd": -0.32, "sharpe": 0.55},
+    "risk_parity_dinamica": {"leva": 5.9, "cagr": 0.105, "maxdd": -0.41, "sharpe": 0.74}
+  },
+  "oos_temporale_risk_parity_dinamica": {"prima_meta_sharpe": 0.38, "seconda_meta_sharpe": 1.04},
+  "robustezza_finestra_vol": {
+    "40g": 0.72, "60g": 0.74, "90g": 0.66, "120g": 0.63, "180g": 0.65,
+    "nota": "tutte le finestre 40-180g sopra l'equal-weight 0.55 => miglioramento strutturale, non parametro fortunato"
+  },
+  "meccanismo": "L'equal-weight sovra-allocava rischio all'oro_trend (vol 15%/anno, DD -35%). La risk-parity taglia l'oro a ~9% e carica i due mean-reversion a bassa vol (idx+fx): piu' rendimento per unita' di rischio E drawdown piu' piccolo (-12% -> -8%).",
+  "verdetto": "Risk-parity dinamica adottata come pesatura di default del sistema multi-edge. Sharpe 0.55 -> 0.74 (robusto), maxDD ridotto. NON promuove a live: resta validazione return-based, oro_trend ancora return-based (peso soft), frizioni di esecuzione non modellate oltre lo spread.",
+  "cautele": [
+    "Sistema comunque MODESTO: Sharpe 0.74 e' un buon portafoglio diversificato, non una macchina da soldi.",
+    "Vol-target 15% da DD -41%: inaccettabile su capitale reale. Punto operativo realistico a vol-target piu' basso (8-10%).",
+    "oro_trend ancora solo return-based (ma-cross) => il suo contributo e' incerto finche' non c'e' un backtest trade-level. Prossimo passo.",
+    "Validazione a livello di serie di rendimenti (posizione +/-1): manca l'esecuzione realistica (stop, sizing, slippage)."
+  ]
+}
