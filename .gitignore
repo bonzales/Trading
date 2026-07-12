@@ -13,3 +13,6 @@ raw/live_state.json
 raw/live_log.csv
 # eventuale config IBC compilata in locale
 /opt/ibc/**
+
+# report auto-generati del motore di ricerca notturno (evidenza rigenerabile)
+raw/research/
